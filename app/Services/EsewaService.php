@@ -13,8 +13,8 @@ class EsewaService
 
     public function __construct()
     {
-        $this->merchantId = config('payment.esewa.merchant_id', 'EPAYTEST');
-        $this->secretKey  = config('payment.esewa.secret_key', '8gBm/:&EnhH.1/q');
+        $this->merchantId = config('payment.esewa.merchant_id');
+        $this->secretKey  = config('payment.esewa.secret_key');
         $this->sandbox    = config('payment.esewa.sandbox', true);
         $this->baseUrl    = $this->sandbox
             ? 'https://rc-epay.esewa.com.np'

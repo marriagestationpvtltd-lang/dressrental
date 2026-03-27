@@ -6,6 +6,11 @@ use Carbon\Carbon;
 
 class NepaliCalendarService
 {
+    /**
+     * Bikram Sambat calendar data, keyed by BS year.
+     * Each value is an array of 12 integers representing the number of days
+     * in each month (Baisakh=1 through Chaitra=12) of that BS year.
+     */
     protected static array $bsData = [
         1970 => [31,31,32,31,31,31,30,29,30,29,30,30],
         1971 => [31,31,32,31,31,31,30,29,30,29,30,30],
@@ -144,7 +149,11 @@ class NepaliCalendarService
         10 => 'माघ',   11 => 'फाल्गुण',12 => 'चैत्र',
     ];
 
-    // Epoch: BS 2000/1/1 = AD 1943/4/21 (calibrated to match official Nepal calendar)
+    /**
+     * The AD date corresponding to BS epoch year/month/day (2000/1/1).
+     * Calibrated so that BS 2081 Baisakh 1 = AD 2024-04-13, matching the
+     * official Nepal government calendar published by Nepal Rastra Bank.
+     */
     protected static string $adEpoch = '1943-04-21';
     protected static int $bsEpochYear = 2000;
 

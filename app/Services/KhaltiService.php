@@ -13,8 +13,8 @@ class KhaltiService
 
     public function __construct()
     {
-        $this->secretKey = config('payment.khalti.secret_key', 'test_secret_key_dc74e0fd57cb46cd93832aee0a390234');
-        $this->publicKey = config('payment.khalti.public_key', 'test_public_key_dc74e0fd57cb46cd93832aee0a390234');
+        $this->secretKey = config('payment.khalti.secret_key');
+        $this->publicKey = config('payment.khalti.public_key');
         $this->sandbox   = config('payment.khalti.sandbox', true);
         $this->baseUrl   = $this->sandbox
             ? 'https://a.khalti.com'
