@@ -1,0 +1,6 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 200 260" fill="none">
+  <rect width="200" height="260" fill="#f3f0ff"/>
+  <path d="M100 40 C80 40 60 60 50 80 L30 120 L60 120 L50 220 L150 220 L140 120 L170 120 L150 80 C140 60 120 40 100 40Z" fill="#c4b5fd" stroke="#8b5cf6" stroke-width="2"/>
+  <circle cx="100" cy="30" r="18" fill="#ddd6fe" stroke="#8b5cf6" stroke-width="2"/>
+  <text x="100" y="245" text-anchor="middle" font-family="sans-serif" font-size="12" fill="#7c3aed">Dress Rental Nepal</text>
+</svg>
