@@ -26,6 +26,51 @@ one for production and one for testing/development.
 
 ---
 
+## Quick start — Manual phpMyAdmin import (no PHP/Composer needed)
+
+If you cannot run PHP commands on the server, you can set up both databases
+directly from phpMyAdmin using the two ready-made SQL files in the
+`database/` folder.
+
+| File | Target database | What it creates |
+|---|---|---|
+| `database/production.sql` | `cpanelusername_dressrental_prod` | Schema + admin user placeholder |
+| `database/testing.sql`    | `cpanelusername_dressrental_test` | Schema + admin + demo user + 6 categories + 12 sample dresses |
+
+### Import steps (same for both files)
+
+1. Log in to **cPanel → phpMyAdmin**.
+2. Select the target database from the left panel.
+3. Click the **Import** tab.
+4. Click **Choose File** and select the SQL file.
+5. Click **Go**.
+
+### ⚠️ Production file — required edit before importing
+
+Open `database/production.sql` in a text editor and replace the three
+placeholders **before** importing:
+
+| Placeholder | Replace with |
+|---|---|
+| `admin@yourdomain.com` | Your real admin e-mail address |
+| `<<<REPLACE_WITH_BCRYPT_HASH>>>` | bcrypt hash of your admin password (see below) |
+| `98XXXXXXXX` | Your real phone number |
+
+**Generate the bcrypt hash** (run in cPanel Terminal or locally):
+
+```bash
+php -r "echo password_hash('YOUR_PASSWORD', PASSWORD_BCRYPT, ['cost'=>12]);"
+```
+
+### Testing file credentials (ready to use)
+
+| Account | Email | Password |
+|---|---|---|
+| Admin | `admin@dressrental.com` | `password` |
+| Demo user | `user@dressrental.com` | `password` |
+
+---
+
 ## Step 2 — Configure environment files
 
 ### Production (`.env`)
