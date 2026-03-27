@@ -50,7 +50,7 @@ CREATE TABLE IF NOT EXISTS `users` (
   `address`           TEXT            DEFAULT NULL,
   `role`              ENUM('user','admin') NOT NULL DEFAULT 'user',
   `profile_photo`     VARCHAR(255)    DEFAULT NULL,
-  `email_verified_at` TIMESTAMP       DEFAULT NULL,
+  `email_verified_at` TIMESTAMP NULL  DEFAULT NULL,
   `password`          VARCHAR(255)    NOT NULL,
   `remember_token`    VARCHAR(100)    DEFAULT NULL,
   `created_at`        TIMESTAMP       DEFAULT NULL,
