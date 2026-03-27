@@ -2,20 +2,40 @@
 -- Dress Rental — PRODUCTION database (manual phpMyAdmin import)
 -- Generated from Laravel migrations + ProductionSeeder
 --
+-- ⚠️  IMPORTANT — TWO SEPARATE SETS OF CREDENTIALS:
+--
+--   A) MySQL CONNECTION credentials (go in your .env file):
+--      DB_DATABASE, DB_USERNAME, DB_PASSWORD
+--      These are the cPanel MySQL username and password you
+--      created in cPanel → MySQL® Databases.
+--      ➜ Do NOT put these in this SQL file.
+--
+--   B) Website ADMIN LOGIN credentials (go in this SQL file):
+--      The email, phone, and bcrypt password in the INSERT below.
+--      These are what you use to log in to the website's admin panel.
+--      ➜ These have nothing to do with MySQL connection.
+--
+--   Both sets must be configured — this file handles (B) only.
+--   Your .env file handles (A).
+--
 -- HOW TO USE:
 --   1. Log in to cPanel → phpMyAdmin
 --   2. Select your PRODUCTION database
 --      (e.g. cpanelusername_dressrental_prod)
---   3. ⚠️  IMPORTANT — before importing, edit the INSERT below:
+--   3. ⚠️  IMPORTANT — before importing, edit the INSERT near the
+--      bottom of this file (search for <<<REPLACE_WITH_BCRYPT_HASH>>>):
 --      • Replace  admin@yourdomain.com  with your real admin e-mail.
 --      • Replace the placeholder hash   <<<REPLACE_WITH_BCRYPT_HASH>>>
 --        with the bcrypt hash of your chosen admin password.
 --        Generate one with:
 --          php -r "echo password_hash('YOUR_PASSWORD', PASSWORD_BCRYPT, ['cost'=>12]);"
---        or on the server:
---          php artisan tinker --execute="echo Hash::make('YOUR_PASSWORD');"
+--        or online (test password only) at https://bcrypt-generator.com (12 rounds).
 --      • Replace  98XXXXXXXX  with your real phone number.
 --   4. Click the "Import" tab → choose this file → click "Go"
+--   5. Then edit your .env file with the MySQL connection credentials
+--      from cPanel → MySQL® Databases.  The site will NOT connect to
+--      the database until .env has the correct DB_DATABASE, DB_USERNAME
+--      and DB_PASSWORD values.
 --
 -- All CREATE TABLE statements use IF NOT EXISTS so re-importing
 -- on a database that already has tables will not destroy data.
@@ -281,12 +301,18 @@ CREATE TABLE IF NOT EXISTS `payments` (
 -- ============================================================
 -- PRODUCTION DATA — Admin account only
 --
--- ⚠️  YOU MUST replace the three placeholder values below:
+-- ⚠️  These are your WEBSITE ADMIN LOGIN credentials.
+--     They are NOT your MySQL server / cPanel credentials.
+--     Your MySQL connection details go in the .env file, not here.
+--
+-- YOU MUST replace the three placeholder values below:
 --     1.  admin@yourdomain.com   → your real admin e-mail
 --     2.  <<<REPLACE_WITH_BCRYPT_HASH>>>
---             → bcrypt hash of your chosen password (cost 12).
---         Generate it:
+--             → bcrypt hash of your chosen admin password (cost 12).
+--         Generate it offline:
 --           php -r "echo password_hash('YOUR_PASSWORD', PASSWORD_BCRYPT, ['cost'=>12]);"
+--         Or online (use a test password only, then change it after login):
+--           https://bcrypt-generator.com  (set rounds to 12)
 --     3.  98XXXXXXXX             → your real phone number
 --
 -- The INSERT uses INSERT IGNORE so re-importing will not

@@ -32,6 +32,17 @@ If you cannot run PHP commands on the server, you can set up both databases
 directly from phpMyAdmin using the two ready-made SQL files in the
 `database/` folder.
 
+> ⚠️ **Two separate sets of credentials — read this first:**
+>
+> | What | Where it goes |
+> |---|---|
+> | MySQL server connection (database name, DB user, DB password) | **`.env`** file — `DB_DATABASE`, `DB_USERNAME`, `DB_PASSWORD` |
+> | Website admin login (email, phone, bcrypt password) | **`database/production.sql`** INSERT row |
+>
+> These are completely separate. Updating the SQL file does **not** configure the
+> database connection. Updating `.env` does **not** create your admin account.
+> You must do both.
+
 | File | Target database | What it creates |
 |---|---|---|
 | `database/production.sql` | `cpanelusername_dressrental_prod` | Schema + admin user placeholder |
@@ -56,11 +67,22 @@ placeholders **before** importing:
 | `<<<REPLACE_WITH_BCRYPT_HASH>>>` | bcrypt hash of your admin password (see below) |
 | `98XXXXXXXX` | Your real phone number |
 
-**Generate the bcrypt hash** (run in cPanel Terminal or locally):
+**Generate the bcrypt hash** — choose whichever method is available to you:
 
-```bash
-php -r "echo password_hash('YOUR_PASSWORD', PASSWORD_BCRYPT, ['cost'=>12]);"
-```
+- **Locally (if PHP is installed on your computer — recommended):**
+  ```bash
+  php -r "echo password_hash('YOUR_PASSWORD', PASSWORD_BCRYPT, ['cost'=>12]);"
+  ```
+  This keeps your password entirely offline.
+- **Online (no terminal, no local PHP):** go to <https://bcrypt-generator.com>,
+  enter your password, set rounds to **12**, click **Generate** and copy the result.
+  > ⚠️ **Security note:** Do not enter your real production password into any
+  > third-party website. Use this method only with a throwaway test password, then
+  > log in and change your password to the real one through the admin panel.
+- **cPanel Terminal (if enabled on your plan):**
+  ```bash
+  php -r "echo password_hash('YOUR_PASSWORD', PASSWORD_BCRYPT, ['cost'=>12]);"
+  ```
 
 ### Testing file credentials (ready to use)
 
@@ -165,7 +187,7 @@ Default test credentials:
 
 ---
 
-## Step 4 — cPanel Git auto-deploy
+## Step 4 — cPanel Git auto-deploy (no terminal needed)
 
 ### One-time setup
 
@@ -180,8 +202,11 @@ Default test credentials:
 cPanel will automatically:
 1. Pull the latest code
 2. Run `composer install --no-dev`
-3. Run `php artisan migrate --force` ← **safe, never deletes data**
-4. Rebuild config / route / view caches
+3. Create `.env` from `.env.example` if it is missing
+4. Generate `APP_KEY` if it is not yet set ← **you never need to run this manually**
+5. Build front-end assets with `npm run build` (if Node.js is available on the server)
+6. Run `php artisan migrate --force` ← **safe, never deletes data**
+7. Rebuild config / route / view caches
 
 You can also trigger it manually:
 **cPanel → Git™ Version Control → Manage → Deploy HEAD Commit**
