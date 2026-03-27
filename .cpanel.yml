@@ -1,0 +1,31 @@
+---
+# .cpanel.yml — cPanel Git auto-deployment script
+# Runs automatically every time you push to GitHub and cPanel pulls the changes.
+#
+# Setup:
+#   cPanel → Git™ Version Control → Manage → "Update from Remote"
+#   or click "Deploy HEAD Commit" to trigger manually.
+#
+# The DEPLOYPATH below must match the document root of your site in cPanel.
+# Typically: /home/CPANELUSERNAME/public_html
+# If the app lives in a subdirectory (e.g. /home/user/public_html/rental),
+# update DEPLOYPATH accordingly and point your domain to that folder.
+
+deployment:
+  tasks:
+    - export DEPLOYPATH=/home/cpanelusername/public_html/
+
+    # 1. Copy repository files to the web root
+    - /bin/cp -R . $DEPLOYPATH
+
+    # 2. Install/update PHP dependencies (no dev packages on production)
+    - cd $DEPLOYPATH && composer install --no-dev --optimize-autoloader --no-interaction
+
+    # 3. Run any new database migrations (safe — never deletes existing data)
+    - cd $DEPLOYPATH && php artisan migrate --force
+
+    # 4. Clear and rebuild all caches
+    - cd $DEPLOYPATH && php artisan config:cache
+    - cd $DEPLOYPATH && php artisan route:cache
+    - cd $DEPLOYPATH && php artisan view:cache
+    - cd $DEPLOYPATH && php artisan event:cache
