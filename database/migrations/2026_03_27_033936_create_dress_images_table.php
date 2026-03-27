@@ -13,6 +13,10 @@ return new class extends Migration
     {
         Schema::create('dress_images', function (Blueprint $table) {
             $table->id();
+            $table->foreignId('dress_id')->constrained('dresses')->onDelete('cascade');
+            $table->string('image_path');
+            $table->boolean('is_primary')->default(false);
+            $table->integer('sort_order')->default(0);
             $table->timestamps();
         });
     }
