@@ -59,8 +59,8 @@ CREATE TABLE IF NOT EXISTS `users` (
   `email_verified_at` TIMESTAMP NULL  DEFAULT NULL,
   `password`          VARCHAR(255)    NOT NULL,
   `remember_token`    VARCHAR(100)    DEFAULT NULL,
-  `created_at`        TIMESTAMP       DEFAULT NULL,
-  `updated_at`        TIMESTAMP       DEFAULT NULL,
+  `created_at`        TIMESTAMP NULL  DEFAULT NULL,
+  `updated_at`        TIMESTAMP NULL  DEFAULT NULL,
   PRIMARY KEY (`id`),
   UNIQUE KEY `users_email_unique` (`email`)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
@@ -71,7 +71,7 @@ CREATE TABLE IF NOT EXISTS `users` (
 CREATE TABLE IF NOT EXISTS `password_reset_tokens` (
   `email`      VARCHAR(255) NOT NULL,
   `token`      VARCHAR(255) NOT NULL,
-  `created_at` TIMESTAMP    DEFAULT NULL,
+  `created_at` TIMESTAMP NULL  DEFAULT NULL,
   PRIMARY KEY (`email`)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
 
@@ -170,8 +170,8 @@ CREATE TABLE IF NOT EXISTS `dress_categories` (
   `icon`        VARCHAR(255)    DEFAULT NULL,
   `is_active`   TINYINT(1)      NOT NULL DEFAULT 1,
   `sort_order`  INT             NOT NULL DEFAULT 0,
-  `created_at`  TIMESTAMP       DEFAULT NULL,
-  `updated_at`  TIMESTAMP       DEFAULT NULL,
+  `created_at`  TIMESTAMP NULL  DEFAULT NULL,
+  `updated_at`  TIMESTAMP NULL  DEFAULT NULL,
   PRIMARY KEY (`id`),
   UNIQUE KEY `dress_categories_slug_unique` (`slug`)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
@@ -193,8 +193,8 @@ CREATE TABLE IF NOT EXISTS `dresses` (
   `color`          VARCHAR(255)    DEFAULT NULL,
   `brand`          VARCHAR(255)    DEFAULT NULL,
   `views`          INT             NOT NULL DEFAULT 0,
-  `created_at`     TIMESTAMP       DEFAULT NULL,
-  `updated_at`     TIMESTAMP       DEFAULT NULL,
+  `created_at`     TIMESTAMP NULL  DEFAULT NULL,
+  `updated_at`     TIMESTAMP NULL  DEFAULT NULL,
   PRIMARY KEY (`id`),
   UNIQUE KEY `dresses_slug_unique` (`slug`),
   KEY `dresses_category_id_foreign` (`category_id`),
@@ -211,8 +211,8 @@ CREATE TABLE IF NOT EXISTS `dress_images` (
   `image_path` VARCHAR(255)    NOT NULL,
   `is_primary` TINYINT(1)      NOT NULL DEFAULT 0,
   `sort_order` INT             NOT NULL DEFAULT 0,
-  `created_at` TIMESTAMP       DEFAULT NULL,
-  `updated_at` TIMESTAMP       DEFAULT NULL,
+  `created_at` TIMESTAMP NULL  DEFAULT NULL,
+  `updated_at` TIMESTAMP NULL  DEFAULT NULL,
   PRIMARY KEY (`id`),
   KEY `dress_images_dress_id_foreign` (`dress_id`),
   CONSTRAINT `dress_images_dress_id_foreign`
@@ -238,10 +238,10 @@ CREATE TABLE IF NOT EXISTS `bookings` (
   `fine_amount`    DECIMAL(10,2)   NOT NULL DEFAULT 0.00,
   `status`         ENUM('pending','paid','active','returned','completed','cancelled') NOT NULL DEFAULT 'pending',
   `notes`          TEXT            DEFAULT NULL,
-  `paid_at`        TIMESTAMP       DEFAULT NULL,
-  `returned_at`    TIMESTAMP       DEFAULT NULL,
-  `created_at`     TIMESTAMP       DEFAULT NULL,
-  `updated_at`     TIMESTAMP       DEFAULT NULL,
+  `paid_at`        TIMESTAMP NULL  DEFAULT NULL,
+  `returned_at`    TIMESTAMP NULL  DEFAULT NULL,
+  `created_at`     TIMESTAMP NULL  DEFAULT NULL,
+  `updated_at`     TIMESTAMP NULL  DEFAULT NULL,
   PRIMARY KEY (`id`),
   KEY `bookings_user_id_foreign`  (`user_id`),
   KEY `bookings_dress_id_foreign` (`dress_id`),
@@ -265,9 +265,9 @@ CREATE TABLE IF NOT EXISTS `payments` (
   `payment_type`     ENUM('advance','balance','deposit_refund','fine') NOT NULL DEFAULT 'advance',
   `gateway_response` JSON            DEFAULT NULL,
   `remarks`          TEXT            DEFAULT NULL,
-  `verified_at`      TIMESTAMP       DEFAULT NULL,
-  `created_at`       TIMESTAMP       DEFAULT NULL,
-  `updated_at`       TIMESTAMP       DEFAULT NULL,
+  `verified_at`      TIMESTAMP NULL  DEFAULT NULL,
+  `created_at`       TIMESTAMP NULL  DEFAULT NULL,
+  `updated_at`       TIMESTAMP NULL  DEFAULT NULL,
   PRIMARY KEY (`id`),
   UNIQUE KEY `payments_transaction_id_unique` (`transaction_id`),
   KEY `payments_booking_id_foreign` (`booking_id`),
