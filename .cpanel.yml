@@ -37,11 +37,13 @@
 
 deployment:
   tasks:
-    # ↓ Replace this ENTIRE path with the Document Root shown in cPanel for your domain/subdomain.
+    # ↓ Set this to the Document Root shown in cPanel for your domain/subdomain.
+    # cPanel's .cpanel.yml requires a literal path here — environment variables
+    # are not available at this stage of the deployment runner.
     # Examples:
     #   Main domain  : /home/cpanelusername/public_html/
     #   Subdomain    : /home/cpanelusername/your-subdomain.yourdomain.com/
-    - export DEPLOYPATH=/home/YOUR_CPANEL_USERNAME/YOUR_DOCUMENT_ROOT/
+    - export DEPLOYPATH=/home/digitallami/kapada.sajilobihe.com/
 
     # 1. Copy repository files to the web root
     - /bin/cp -R . $DEPLOYPATH
@@ -72,7 +74,14 @@ deployment:
     # 7. Run any new database migrations (safe — never deletes existing data)
     - cd $DEPLOYPATH && php artisan migrate --force
 
-    # 8. Clear and rebuild all caches
+    # 8. Seed the admin account from .env credentials.
+    #    ProductionSeeder uses firstOrCreate, so it is safe to run on every deploy —
+    #    it will only insert the admin row if it does not already exist.
+    #    --force suppresses the "are you sure?" prompt; idempotency is handled by the seeder.
+    #    Requires ADMIN_EMAIL, ADMIN_PASSWORD, and ADMIN_PHONE to be set in .env.
+    - cd $DEPLOYPATH && php artisan db:seed --class=ProductionSeeder --force
+
+    # 9. Clear and rebuild all caches
     - cd $DEPLOYPATH && php artisan config:cache
     - cd $DEPLOYPATH && php artisan route:cache
     - cd $DEPLOYPATH && php artisan view:cache
