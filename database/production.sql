@@ -323,10 +323,10 @@ INSERT IGNORE INTO `users`
 VALUES
   (
     'Admin',
-    'admin@yourdomain.com',
-    '98XXXXXXXX',
+    'utmacharya@gmail.com',
+    '9818851219',
     'admin',
-    '<<<REPLACE_WITH_BCRYPT_HASH>>>',
+    '$2y$12$BUvkyJ46Xq9VQTWc6oc7eeXMW.fB6uxkBIQKzyI14RONUPmFOBh3O',
     NOW(),
     NOW()
   );

@@ -41,7 +41,7 @@ deployment:
     # Examples:
     #   Main domain  : /home/cpanelusername/public_html/
     #   Subdomain    : /home/cpanelusername/your-subdomain.yourdomain.com/
-    - export DEPLOYPATH=/home/YOUR_CPANEL_USERNAME/YOUR_DOCUMENT_ROOT/
+    - export DEPLOYPATH=/home/digitallami/kapada.sajilobihe.com/
 
     # 1. Copy repository files to the web root
     - /bin/cp -R . $DEPLOYPATH
