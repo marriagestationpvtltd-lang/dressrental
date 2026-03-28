@@ -299,36 +299,19 @@ CREATE TABLE IF NOT EXISTS `payments` (
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
 
 -- ============================================================
--- PRODUCTION DATA — Admin account only
+-- PRODUCTION DATA — Admin account
 --
--- ⚠️  These are your WEBSITE ADMIN LOGIN credentials.
---     They are NOT your MySQL server / cPanel credentials.
---     Your MySQL connection details go in the .env file, not here.
+-- The admin account is created automatically by ProductionSeeder,
+-- which runs as part of the .cpanel.yml deployment script.
+-- It reads credentials from the .env file:
 --
--- YOU MUST replace the three placeholder values below:
---     1.  admin@yourdomain.com   → your real admin e-mail
---     2.  <<<REPLACE_WITH_BCRYPT_HASH>>>
---             → bcrypt hash of your chosen admin password (cost 12).
---         Generate it offline:
---           php -r "echo password_hash('YOUR_PASSWORD', PASSWORD_BCRYPT, ['cost'=>12]);"
---         Or online (use a test password only, then change it after login):
---           https://bcrypt-generator.com  (set rounds to 12)
---     3.  98XXXXXXXX             → your real phone number
+--   ADMIN_EMAIL=your-admin@email.com
+--   ADMIN_PASSWORD=your_secure_password
+--   ADMIN_PHONE=98XXXXXXXXX
 --
--- The INSERT uses INSERT IGNORE so re-importing will not
--- overwrite an existing admin account.
+-- Set these values in your .env file on the server
+-- (cPanel → File Manager → your document root → .env).
+-- The seeder uses firstOrCreate — safe to run multiple times.
 -- ============================================================
-INSERT IGNORE INTO `users`
-  (`name`, `email`, `phone`, `role`, `password`, `created_at`, `updated_at`)
-VALUES
-  (
-    'Admin',
-    'utmacharya@gmail.com',
-    '9818851219',
-    'admin',
-    '$2y$12$BUvkyJ46Xq9VQTWc6oc7eeXMW.fB6uxkBIQKzyI14RONUPmFOBh3O',
-    NOW(),
-    NOW()
-  );
 
 SET FOREIGN_KEY_CHECKS = 1;
