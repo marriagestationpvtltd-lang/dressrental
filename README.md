@@ -112,13 +112,21 @@ Default test credentials (after seeding):
 
 ### Step 3 — Set up the `.env` file (File Manager)
 
-1. Open **cPanel → File Manager** → navigate to `public_html`.
+> **Finding your document root:** The folder to navigate to depends on where your site lives.
+> Open **cPanel → Subdomains** (or **Domains**) and look at the **Document Root** column
+> next to your domain or subdomain name.
+> - Main domain → usually `public_html`
+> - Subdomain (e.g. `your-subdomain.yourdomain.com`) → usually a folder with the same name
+>   (a folder at the same level as `public_html`, not inside it)
+
+1. Open **cPanel → File Manager** → navigate to your site's document root folder
+   (e.g. `your-subdomain.yourdomain.com/` for a subdomain, or `public_html/` for a main domain).
 2. If `.env` does **not** exist yet, copy `.env.example` and rename the copy to `.env`.
    *(Right-click → Copy; then rename the copy.)*
 3. Right-click `.env` → **Edit** and fill in the values below:
 
 ```env
-APP_URL=https://yourdomain.com
+APP_URL=https://your-subdomain.yourdomain.com
 
 DB_DATABASE=cpanelusername_dressrental_prod
 DB_USERNAME=cpanelusername_dbuser
@@ -135,19 +143,33 @@ ADMIN_PHONE=98XXXXXXXX
 
 ### Step 4 — Set up cPanel Git™ Version Control (auto-deploy)
 
-1. Open **cPanel → Git™ Version Control → Create Repository**.
+1. Find your document root path:
+   **cPanel → Subdomains** (or **Domains**) → look at the **Document Root** column.
+   - Example for a subdomain: `/home/cpanelusername/your-subdomain.yourdomain.com`
+   - Example for main domain: `/home/cpanelusername/public_html`
+
+2. Open **cPanel → Git™ Version Control → Create Repository**.
    - **Clone URL**: `https://github.com/marriagestationpvtltd-lang/dressrental.git`
-   - **Repository Path**: `/home/cpanelusername/public_html`
-2. Before cloning, edit **`.cpanel.yml`** in this repository — replace `cpanelusername`
-   on the `DEPLOYPATH` line with your real cPanel username, then commit and push.
-3. Back in cPanel, click **Manage → Deploy HEAD Commit**.
+   - **Repository Path**: your document root path from step 1
+
+3. Before cloning, edit **`.cpanel.yml`** in this repository — set the `DEPLOYPATH`
+   line to your full document root path (the same path used above), then commit and push.
+   ```yaml
+   # Subdomain example:
+   - export DEPLOYPATH=/home/cpanelusername/your-subdomain.yourdomain.com/
+   # Main domain example:
+   - export DEPLOYPATH=/home/cpanelusername/public_html/
+   ```
+
+4. Back in cPanel, click **Manage → Deploy HEAD Commit**.
 
 cPanel will automatically:
-- Copy all files to `public_html`
+- Copy all files to your document root
 - Run `composer install --no-dev`
 - Create `.env` from `.env.example` if it is missing
 - Generate `APP_KEY` if it is not already set
 - Build front-end CSS/JS (`npm run build`) if Node.js is available on the server
+- Create the `public/storage` symlink for uploaded files
 - Run `php artisan migrate --force`
 - Rebuild config / route / view caches
 
@@ -291,15 +313,29 @@ This is the most common deployment mistake. There are **two completely separate*
 
 **Fix:** Open `.env` in **cPanel → File Manager** and replace the three `DB_*` placeholder values with your real cPanel MySQL credentials.
 
+### "404 Not Found — website shows nothing after setting up .env"
+
+This happens because cPanel deploys the full Laravel repository into `public_html/`, but
+Laravel's actual web entry point is the `public/` subdirectory inside it.
+The root `.htaccess` (included in this repository) fixes this by forwarding all web
+requests into `public/` automatically — **no manual action needed**.
+
+If you still get 404 after a fresh deploy, check that `.htaccess` was copied to
+`public_html/`. In **cPanel → File Manager → public_html**, look for `.htaccess`
+(you may need to tick **"Show Hidden Files"**). If it is missing, trigger a new deploy:
+**cPanel → Git™ Version Control → Manage → Deploy HEAD Commit**.
+
 ### "Website shows an error page / blank page after first deploy"
 
 Check these in order:
 
 | Symptom | Likely cause | Fix |
 |---|---|---|
+| 404 Not Found on every page | `public_html/.htaccess` missing | Trigger a new Git deploy — `.cpanel.yml` copies it automatically |
 | "No application encryption key" | `APP_KEY` is blank in `.env` | Trigger a new Git deploy — `.cpanel.yml` auto-generates it |
 | "SQLSTATE: Connection refused" or "Access denied" | Wrong `DB_*` values in `.env` | Edit `.env` via File Manager with real cPanel MySQL credentials |
 | Page has no CSS or styling | `public/build/` missing (npm didn't run) | Build locally: `npm ci && npm run build`, commit `public/build/`, push |
+| Uploaded images not showing | `public/storage` symlink missing | Trigger a new Git deploy — `.cpanel.yml` runs `storage:link` |
 | "Class not found" errors | `vendor/` not installed | Trigger a new Git deploy — `.cpanel.yml` runs `composer install` |
 | Cannot log in as admin | Admin account not created or wrong password hash | Re-import `production.sql` after fixing the hash placeholder |
 

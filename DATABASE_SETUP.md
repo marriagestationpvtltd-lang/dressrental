@@ -191,11 +191,14 @@ Default test credentials:
 
 ### One-time setup
 
-1. In cPanel → **Git™ Version Control** → **Create Repository**
-   - Repository path: `/home/cpanelusername/public_html`
+1. Find your document root: **cPanel → Subdomains** (or **Domains**) → **Document Root** column.
+   - Subdomain example: `/home/cpanelusername/kapada.sajilobihe.com`
+   - Main domain example: `/home/cpanelusername/public_html`
+2. In cPanel → **Git™ Version Control** → **Create Repository**
+   - Repository path: *(your document root from step 1)*
    - Clone URL: `https://github.com/marriagestationpvtltd-lang/dressrental.git`
-2. Edit **`.cpanel.yml`** and replace `cpanelusername` with your actual username.
-3. Commit and push `.cpanel.yml` to GitHub.
+3. Edit **`.cpanel.yml`** — set the `DEPLOYPATH` line to your full document root path
+   (with a trailing slash), then commit and push to GitHub.
 
 ### After each `git push`
 
@@ -205,8 +208,9 @@ cPanel will automatically:
 3. Create `.env` from `.env.example` if it is missing
 4. Generate `APP_KEY` if it is not yet set ← **you never need to run this manually**
 5. Build front-end assets with `npm run build` (if Node.js is available on the server)
-6. Run `php artisan migrate --force` ← **safe, never deletes data**
-7. Rebuild config / route / view caches
+6. Create the `public/storage` symlink for uploaded files
+7. Run `php artisan migrate --force` ← **safe, never deletes data**
+8. Rebuild config / route / view caches
 
 You can also trigger it manually:
 **cPanel → Git™ Version Control → Manage → Deploy HEAD Commit**

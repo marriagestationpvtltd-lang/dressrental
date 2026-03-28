@@ -6,25 +6,42 @@
 #
 # Setup (one-time, all done through the cPanel web interface):
 #   1. cPanel → Git™ Version Control → Create Repository
-#      Clone URL : https://github.com/marriagestationpvtltd-lang/dressrental.git
-#      Repository Path: /home/cpanelusername/public_html
-#   2. Replace "cpanelusername" on the DEPLOYPATH line below with your real
-#      cPanel username, commit, and push to GitHub.
-#   3. cPanel → File Manager → navigate to public_html → upload a configured
+#      Clone URL       : https://github.com/marriagestationpvtltd-lang/dressrental.git
+#      Repository Path : the same path you set as the subdomain/domain document root
+#                        (see "Finding your document root" below)
+#   2. Set DEPLOYPATH on the line below to match that document root, then
+#      commit and push to GitHub.
+#   3. cPanel → File Manager → navigate to that folder → upload a configured
 #      .env file (copy .env.example, fill in DB credentials and admin details).
 #      You can skip this — step 3 below will create one from .env.example
 #      automatically, but you MUST then edit it with your real credentials.
 #   4. cPanel → Git™ Version Control → Manage → "Deploy HEAD Commit"
 #      (after the first deploy, every git push triggers this automatically).
 #
-# The DEPLOYPATH below must match the document root of your site in cPanel.
-# Typically: /home/CPANELUSERNAME/public_html
-# If the app lives in a subdirectory (e.g. /home/user/public_html/rental),
-# update DEPLOYPATH accordingly and point your domain to that folder.
+# ── Finding your document root ───────────────────────────────────────────────
+# The path depends on where your domain/subdomain is hosted:
+#
+#   Main domain (public_html):
+#     /home/cpanelusername/public_html
+#
+#   Subdomain created in cPanel → Subdomains (most common for add-on sites):
+#     /home/cpanelusername/your-subdomain.yourdomain.com
+#     (cPanel creates this folder automatically when you add the subdomain)
+#
+#   Subdomain pointing to a subfolder of public_html:
+#     /home/cpanelusername/public_html/subdomain-name
+#
+# To confirm the exact path: cPanel → Subdomains (or Domains) → look at the
+# "Document Root" column next to your domain/subdomain name.
+# ─────────────────────────────────────────────────────────────────────────────
 
 deployment:
   tasks:
-    - export DEPLOYPATH=/home/cpanelusername/public_html/
+    # ↓ Replace this ENTIRE path with the Document Root shown in cPanel for your domain/subdomain.
+    # Examples:
+    #   Main domain  : /home/cpanelusername/public_html/
+    #   Subdomain    : /home/cpanelusername/your-subdomain.yourdomain.com/
+    - export DEPLOYPATH=/home/YOUR_CPANEL_USERNAME/YOUR_DOCUMENT_ROOT/
 
     # 1. Copy repository files to the web root
     - /bin/cp -R . $DEPLOYPATH
@@ -48,10 +65,14 @@ deployment:
     #    and commit the public/build/ folder before pushing.
     - cd $DEPLOYPATH && if command -v npm >/dev/null 2>&1; then npm ci && npm run build; else echo "Node.js not found — skipping front-end build. Pre-build assets locally and commit public/build/ if the site has no styling."; fi
 
-    # 6. Run any new database migrations (safe — never deletes existing data)
+    # 6. Create the storage symlink (public/storage → storage/app/public).
+    #    Needed so uploaded files and images are publicly accessible.
+    - cd $DEPLOYPATH && php artisan storage:link --force
+
+    # 7. Run any new database migrations (safe — never deletes existing data)
     - cd $DEPLOYPATH && php artisan migrate --force
 
-    # 7. Clear and rebuild all caches
+    # 8. Clear and rebuild all caches
     - cd $DEPLOYPATH && php artisan config:cache
     - cd $DEPLOYPATH && php artisan route:cache
     - cd $DEPLOYPATH && php artisan view:cache
