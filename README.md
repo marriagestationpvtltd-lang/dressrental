@@ -291,15 +291,29 @@ This is the most common deployment mistake. There are **two completely separate*
 
 **Fix:** Open `.env` in **cPanel → File Manager** and replace the three `DB_*` placeholder values with your real cPanel MySQL credentials.
 
+### "404 Not Found — website shows nothing after setting up .env"
+
+This happens because cPanel deploys the full Laravel repository into `public_html/`, but
+Laravel's actual web entry point is the `public/` subdirectory inside it.
+The root `.htaccess` (included in this repository) fixes this by forwarding all web
+requests into `public/` automatically — **no manual action needed**.
+
+If you still get 404 after a fresh deploy, check that `.htaccess` was copied to
+`public_html/`. In **cPanel → File Manager → public_html**, look for `.htaccess`
+(you may need to tick **"Show Hidden Files"**). If it is missing, trigger a new deploy:
+**cPanel → Git™ Version Control → Manage → Deploy HEAD Commit**.
+
 ### "Website shows an error page / blank page after first deploy"
 
 Check these in order:
 
 | Symptom | Likely cause | Fix |
 |---|---|---|
+| 404 Not Found on every page | `public_html/.htaccess` missing | Trigger a new Git deploy — `.cpanel.yml` copies it automatically |
 | "No application encryption key" | `APP_KEY` is blank in `.env` | Trigger a new Git deploy — `.cpanel.yml` auto-generates it |
 | "SQLSTATE: Connection refused" or "Access denied" | Wrong `DB_*` values in `.env` | Edit `.env` via File Manager with real cPanel MySQL credentials |
 | Page has no CSS or styling | `public/build/` missing (npm didn't run) | Build locally: `npm ci && npm run build`, commit `public/build/`, push |
+| Uploaded images not showing | `public/storage` symlink missing | Trigger a new Git deploy — `.cpanel.yml` runs `storage:link` |
 | "Class not found" errors | `vendor/` not installed | Trigger a new Git deploy — `.cpanel.yml` runs `composer install` |
 | Cannot log in as admin | Admin account not created or wrong password hash | Re-import `production.sql` after fixing the hash placeholder |
 
