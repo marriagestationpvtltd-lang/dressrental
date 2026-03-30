@@ -5,6 +5,27 @@
 @push('styles')
 <style>
 .thumb-active { border-color: #7c3aed !important; box-shadow: 0 0 0 2px #c4b5fd; }
+
+/* Accessories horizontal slider */
+.accessories-slider {
+    display: flex;
+    gap: 0.5rem;
+    overflow-x: auto;
+    scroll-snap-type: x mandatory;
+    -webkit-overflow-scrolling: touch;
+    scrollbar-width: none; /* Firefox */
+    -ms-overflow-style: none; /* IE/Edge */
+    scroll-behavior: smooth;
+}
+.accessories-slider::-webkit-scrollbar { display: none; }
+.accessories-slider-item {
+    flex-shrink: 0;
+    width: 6.5rem;
+    scroll-snap-align: start;
+}
+@media (min-width: 640px) {
+    .accessories-slider-item { width: 7.5rem; }
+}
 </style>
 @endpush
 
@@ -62,21 +83,42 @@
                 @endif
             </div>
 
-            <!-- ── Recommended Accessories (compact) ── -->
+            <!-- ── Recommended Accessories (horizontal slider) ── -->
             @if($ornamentRecommendations->count())
-            <div class="bg-white rounded-2xl border border-violet-100 shadow-sm p-4">
-                <div class="flex items-center gap-2 mb-3">
-                    <span class="w-5 h-5 gradient-bg rounded-lg flex items-center justify-center flex-shrink-0">
-                        <svg class="w-3 h-3 text-white" fill="currentColor" viewBox="0 0 20 20"><path d="M5 3a2 2 0 00-2 2v2a2 2 0 002 2h2a2 2 0 002-2V5a2 2 0 00-2-2H5zM5 11a2 2 0 00-2 2v2a2 2 0 002 2h2a2 2 0 002-2v-2a2 2 0 00-2-2H5zM11 5a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2h-2a2 2 0 01-2-2V5zM14 11a1 1 0 011 1v1h1a1 1 0 110 2h-1v1a1 1 0 11-2 0v-1h-1a1 1 0 110-2h1v-1a1 1 0 011-1z"/></svg>
-                    </span>
-                    <div>
-                        <h3 class="text-sm font-bold text-gray-800">Recommended Accessories</h3>
-                        <p class="text-xs text-gray-400">Complete the look</p>
+            <div class="bg-white rounded-2xl border border-violet-100 shadow-sm p-4"
+                     x-data="{
+                     peek() {
+                         const el = this.$refs.slider;
+                         if (!el || el.scrollWidth <= el.clientWidth) return;
+                         // scroll ~1 item width (6.5 rem ≈ 96px) to hint slideable content
+                         setTimeout(() => {
+                             el.scrollTo({ left: 96, behavior: 'smooth' });
+                             setTimeout(() => el.scrollTo({ left: 0, behavior: 'smooth' }), 700);
+                         }, 600);
+                     }
+                 }"
+                 x-init="peek()">
+                <div class="flex items-center justify-between gap-2 mb-3">
+                    <div class="flex items-center gap-2">
+                        <span class="w-5 h-5 gradient-bg rounded-lg flex items-center justify-center flex-shrink-0">
+                            <svg class="w-3 h-3 text-white" fill="currentColor" viewBox="0 0 20 20"><path d="M5 3a2 2 0 00-2 2v2a2 2 0 002 2h2a2 2 0 002-2V5a2 2 0 00-2-2H5zM5 11a2 2 0 00-2 2v2a2 2 0 002 2h2a2 2 0 002-2v-2a2 2 0 00-2-2H5zM11 5a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2h-2a2 2 0 01-2-2V5zM14 11a1 1 0 011 1v1h1a1 1 0 110 2h-1v1a1 1 0 11-2 0v-1h-1a1 1 0 110-2h1v-1a1 1 0 011-1z"/></svg>
+                        </span>
+                        <div>
+                            <h3 class="text-sm font-bold text-gray-800">Recommended Accessories</h3>
+                            <p class="text-xs text-gray-400">Complete the look</p>
+                        </div>
                     </div>
+                    @if($ornamentRecommendations->count() > 3)
+                    <span class="flex items-center gap-1 text-[10px] text-fuchsia-500 font-medium select-none flex-shrink-0">
+                        <svg class="w-3 h-3" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2.5"><path stroke-linecap="round" stroke-linejoin="round" d="M15 19l-7-7 7-7"/></svg>
+                        swipe
+                        <svg class="w-3 h-3" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2.5"><path stroke-linecap="round" stroke-linejoin="round" d="M9 5l7 7-7 7"/></svg>
+                    </span>
+                    @endif
                 </div>
-                <div class="grid grid-cols-3 gap-2">
-                    @foreach($ornamentRecommendations->take(6) as $ornament)
-                    <div class="group bg-gray-50 border border-violet-100 rounded-xl overflow-hidden hover:border-fuchsia-300 hover:shadow-sm transition-all"
+                <div class="accessories-slider" x-ref="slider">
+                    @foreach($ornamentRecommendations as $ornament)
+                    <div class="accessories-slider-item group bg-gray-50 border border-violet-100 rounded-xl overflow-hidden hover:border-fuchsia-300 hover:shadow-sm transition-all"
                          role="group"
                          aria-label="{{ $ornament->name }} — ₨{{ number_format($ornament->price_per_day) }} per day">
                         <div class="aspect-square bg-gradient-to-br from-fuchsia-50 to-pink-50 overflow-hidden relative">
@@ -95,9 +137,6 @@
                     </div>
                     @endforeach
                 </div>
-                @if($ornamentRecommendations->count() > 6)
-                <p class="text-xs text-gray-400 text-center mt-2">+{{ $ornamentRecommendations->count() - 6 }} more accessories available</p>
-                @endif
             </div>
             @endif
             </div>{{-- end of left column wrapper --}}
