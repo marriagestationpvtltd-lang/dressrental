@@ -13,13 +13,20 @@
 <!-- Breadcrumb bar -->
 <div class="bg-white border-b border-violet-100">
     <div class="max-w-7xl mx-auto px-4 py-3">
-        <nav class="text-sm text-gray-400 flex items-center gap-2 flex-wrap">
-            <a href="{{ route('home') }}" class="hover:text-primary-600 transition-colors font-medium">Home</a>
-            <svg class="w-3 h-3 text-gray-300" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7"/></svg>
-            <a href="{{ route('dresses.index') }}" class="hover:text-primary-600 transition-colors font-medium">Dresses</a>
-            <svg class="w-3 h-3 text-gray-300" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7"/></svg>
-            <span class="text-gray-700 font-semibold truncate max-w-xs">{{ $dress->name }}</span>
-        </nav>
+        <div class="flex items-center justify-between gap-4">
+            <nav class="text-sm text-gray-400 flex items-center gap-2 flex-wrap">
+                <a href="{{ route('home') }}" class="hover:text-primary-600 transition-colors font-medium">Home</a>
+                <svg class="w-3 h-3 text-gray-300" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7"/></svg>
+                <a href="{{ route('dresses.index') }}" class="hover:text-primary-600 transition-colors font-medium">Dresses</a>
+                <svg class="w-3 h-3 text-gray-300" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7"/></svg>
+                <span class="text-gray-700 font-semibold truncate max-w-xs">{{ $dress->name }}</span>
+            </nav>
+            <x-share-button
+                :url="route('dresses.show', $dress->slug)"
+                :title="$dress->name . ' — ' . config('app.name')"
+                size="sm"
+            />
+        </div>
     </div>
 </div>
 
