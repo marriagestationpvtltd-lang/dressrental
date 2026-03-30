@@ -6,6 +6,7 @@ use App\Http\Controllers\Controller;
 use App\Models\Dress;
 use App\Models\DressCategory;
 use App\Models\DressImage;
+use App\Models\Ornament;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Storage;
 use Illuminate\Support\Str;
@@ -81,10 +82,11 @@ class DressController extends Controller
 
     public function edit(Dress $dress)
     {
-        $dress->load('images');
+        $dress->load(['images', 'ornaments']);
         $categories = DressCategory::where('is_active', true)->get();
         $sizes      = ['XS', 'S', 'M', 'L', 'XL', 'XXL', 'Free Size'];
-        return view('admin.dresses.edit', compact('dress', 'categories', 'sizes'));
+        $ornaments  = Ornament::orderBy('name')->get();
+        return view('admin.dresses.edit', compact('dress', 'categories', 'sizes', 'ornaments'));
     }
 
     public function update(Request $request, Dress $dress)
@@ -102,10 +104,14 @@ class DressController extends Controller
             'is_featured'    => 'boolean',
             'images'         => 'nullable|array',
             'images.*'       => 'image|mimes:jpg,jpeg,png,webp|max:3072',
+            'ornament_ids'   => 'nullable|array',
+            'ornament_ids.*' => 'exists:ornaments,id',
         ]);
 
         $data['is_featured'] = $request->boolean('is_featured');
         $dress->update($data);
+
+        $dress->ornaments()->sync($request->input('ornament_ids', []));
 
         if ($request->hasFile('images')) {
             $startOrder = $dress->images()->max('sort_order') + 1;
