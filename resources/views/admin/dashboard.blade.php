@@ -53,6 +53,53 @@
     </div>
     @endif
 
+    <!-- Return Tracking Alerts -->
+    @if($dueReturns->count() > 0)
+    <div class="bg-red-50 border-2 border-red-200 rounded-2xl p-4">
+        <div class="flex items-center gap-3 mb-3">
+            <div class="w-10 h-10 bg-red-500 rounded-xl flex items-center justify-center text-xl shrink-0">🔴</div>
+            <div class="font-bold text-red-800">{{ $dueReturns->count() }} dress{{ $dueReturns->count() > 1 ? 'es' : '' }} overdue for return</div>
+        </div>
+        <div class="divide-y divide-red-100">
+            @foreach($dueReturns as $b)
+            <div class="flex items-center justify-between py-2 text-sm">
+                <div>
+                    <a href="{{ route('admin.bookings.show', $b) }}" class="font-semibold text-red-700 hover:underline">#{{ $b->id }} · {{ $b->user->name }}</a>
+                    <span class="text-red-500 ml-2">{{ $b->dress->name ?? '' }}</span>
+                </div>
+                <span class="text-xs font-bold text-red-600 bg-red-100 px-2 py-0.5 rounded-full">
+                    Due {{ $b->end_date->format('M d, Y') }}
+                    ({{ $b->end_date->diffForHumans() }})
+                </span>
+            </div>
+            @endforeach
+        </div>
+    </div>
+    @endif
+
+    @if($upcomingReturns->count() > 0)
+    <div class="bg-orange-50 border-2 border-orange-200 rounded-2xl p-4">
+        <div class="flex items-center gap-3 mb-3">
+            <div class="w-10 h-10 bg-orange-400 rounded-xl flex items-center justify-center text-xl shrink-0">📅</div>
+            <div class="font-bold text-orange-800">{{ $upcomingReturns->count() }} return{{ $upcomingReturns->count() > 1 ? 's' : '' }} due in the next 3 days</div>
+        </div>
+        <div class="divide-y divide-orange-100">
+            @foreach($upcomingReturns as $b)
+            <div class="flex items-center justify-between py-2 text-sm">
+                <div>
+                    <a href="{{ route('admin.bookings.show', $b) }}" class="font-semibold text-orange-700 hover:underline">#{{ $b->id }} · {{ $b->user->name }}</a>
+                    <span class="text-orange-500 ml-2">{{ $b->dress->name ?? '' }}</span>
+                </div>
+                <span class="text-xs font-bold text-orange-600 bg-orange-100 px-2 py-0.5 rounded-full">
+                    Due {{ $b->end_date->format('M d, Y') }}
+                    ({{ $b->end_date->diffForHumans() }})
+                </span>
+            </div>
+            @endforeach
+        </div>
+    </div>
+    @endif
+
     <div class="grid grid-cols-1 lg:grid-cols-2 gap-6">
         <!-- Recent Bookings -->
         <div class="bg-white rounded-2xl shadow-sm border border-violet-100 overflow-hidden">

@@ -24,6 +24,8 @@ class Booking extends Model
         'total_amount',
         'advance_amount',
         'fine_amount',
+        'discount_type',
+        'discount_amount',
         'status',
         'notes',
         'paid_at',
@@ -33,15 +35,16 @@ class Booking extends Model
     protected function casts(): array
     {
         return [
-            'start_date'     => 'date',
-            'end_date'       => 'date',
-            'rental_amount'  => 'decimal:2',
-            'deposit_amount' => 'decimal:2',
-            'total_amount'   => 'decimal:2',
-            'advance_amount' => 'decimal:2',
-            'fine_amount'    => 'decimal:2',
-            'paid_at'        => 'datetime',
-            'returned_at'    => 'datetime',
+            'start_date'      => 'date',
+            'end_date'        => 'date',
+            'rental_amount'   => 'decimal:2',
+            'deposit_amount'  => 'decimal:2',
+            'total_amount'    => 'decimal:2',
+            'advance_amount'  => 'decimal:2',
+            'fine_amount'     => 'decimal:2',
+            'discount_amount' => 'decimal:2',
+            'paid_at'         => 'datetime',
+            'returned_at'     => 'datetime',
         ];
     }
 
@@ -68,6 +71,17 @@ class Booking extends Model
     public function getTotalPaidAttribute(): float
     {
         return (float) $this->completedPayments()->sum('amount');
+    }
+
+    public function getDiscountAppliedAttribute(): float
+    {
+        if ($this->discount_type === 'percentage') {
+            return round(($this->rental_amount + $this->deposit_amount) * ($this->discount_amount / 100), 2);
+        }
+        if ($this->discount_type === 'fixed') {
+            return (float) $this->discount_amount;
+        }
+        return 0.0;
     }
 
     public function getStatusBadgeColorAttribute(): string

@@ -72,6 +72,7 @@ Route::middleware(['auth', 'admin'])->prefix('admin')->name('admin.')->group(fun
     // Bookings
     Route::resource('bookings', Admin\BookingController::class)->only(['index', 'show', 'update']);
     Route::post('/bookings/{booking}/status', [Admin\BookingController::class, 'updateStatus'])->name('bookings.update-status');
+    Route::get('/bookings/{booking}/invoice', [Admin\InvoiceController::class, 'show'])->name('bookings.invoice');
 
     // Payments
     Route::resource('payments', Admin\PaymentController::class)->only(['index', 'show']);
