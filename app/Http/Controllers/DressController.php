@@ -90,7 +90,9 @@ class DressController extends Controller
         }
 
         $dress->increment('views');
-        $dress->load(['images', 'category']);
+        $dress->load(['images', 'category', 'ornaments']);
+
+        $ornamentRecommendations = $dress->ornaments()->available()->get();
 
         $recommendations = Dress::with(['images', 'category'])
             ->available()
@@ -111,6 +113,6 @@ class DressController extends Controller
                 'end'   => $b->end_date->format('Y-m-d'),
             ]);
 
-        return view('dresses.show', compact('dress', 'recommendations', 'bookedRanges'));
+        return view('dresses.show', compact('dress', 'recommendations', 'bookedRanges', 'ornamentRecommendations'));
     }
 }

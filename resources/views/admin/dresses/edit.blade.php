@@ -102,9 +102,28 @@
                               class="w-full border border-gray-200 rounded-xl px-4 py-3 focus:ring-2 focus:ring-primary-500 outline-none resize-none">{{ old('description', $dress->description) }}</textarea>
                 </div>
 
+                @if($ornaments->count())
                 <div class="md:col-span-2">
-                    <label class="block text-sm font-medium text-gray-700 mb-1">
-                        Add More Images
+                    <label class="block text-sm font-medium text-gray-700 mb-2">Recommended Ornaments & Accessories</label>
+                    <p class="text-xs text-gray-400 mb-3">Select the ornaments/accessories that go well with this dress. These will be shown to customers on the dress detail page.</p>
+                    <div class="grid grid-cols-2 sm:grid-cols-3 gap-2 max-h-64 overflow-y-auto border border-gray-200 rounded-xl p-3">
+                        @foreach($ornaments as $ornament)
+                        <label class="flex items-center gap-2 p-2 rounded-lg hover:bg-violet-50 cursor-pointer border border-transparent has-[:checked]:border-violet-300 has-[:checked]:bg-violet-50 transition-colors">
+                            <input type="checkbox" name="ornament_ids[]" value="{{ $ornament->id }}"
+                                   class="w-4 h-4 rounded border-gray-300 text-primary-600"
+                                   {{ in_array($ornament->id, old('ornament_ids', $dress->ornaments->pluck('id')->toArray())) ? 'checked' : '' }}>
+                            <div class="min-w-0">
+                                <div class="text-sm font-medium text-gray-800 truncate">{{ $ornament->name }}</div>
+                                <div class="text-xs text-gray-400">{{ \App\Models\Ornament::categoryLabel($ornament->category) }}</div>
+                            </div>
+                        </label>
+                        @endforeach
+                    </div>
+                </div>
+                @endif
+
+                <div class="md:col-span-2">
+                    <label class="block text-sm font-medium text-gray-700 mb-1">Add More Images
                         @if(\App\Models\Setting::get('gemini_api_key'))
                             <span class="ml-2 inline-flex items-center gap-1 text-xs font-normal text-violet-600 bg-violet-50 border border-violet-200 rounded-full px-2 py-0.5">
                                 <svg class="w-3 h-3" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 10V3L4 14h7v7l9-11h-7z"/></svg>
