@@ -60,43 +60,9 @@
                 </div>
                 @endif
             </div>
-        <!-- Images Gallery -->
-        <div x-data="{ activeImg: '{{ $dress->primaryImage() ? $dress->primaryImage()->url : '' }}' }">
-            <div class="aspect-square rounded-3xl overflow-hidden bg-gray-100 mb-4 border-2 border-transparent hover:border-purple-400 hover:shadow-xl transition-all duration-300 group">
-                @if($dress->primaryImage())
-                    <img :src="activeImg" alt="{{ $dress->name }}" class="w-full h-full object-cover group-hover:scale-110 transition-transform duration-300 ease-in-out" id="main-img">
-                @else
-                    <div class="w-full h-full flex items-center justify-center bg-gradient-to-br from-purple-100 to-pink-100">
-                        <svg class="w-24 h-24 text-purple-300" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="1" d="M12 3l9 7-9 7-9-7 9-7z"/></svg>
-                    </div>
-                @endif
-            </div>
-            @if($dress->images->count() > 1)
-            <div class="grid grid-cols-5 gap-2">
-                @foreach($dress->images as $img)
-                    <button @click="activeImg = '{{ $img->url }}'"
-                            :class="activeImg === '{{ $img->url }}' ? 'thumb-active' : ''"
-                            class="aspect-square rounded-xl overflow-hidden border-2 border-transparent hover:border-purple-400 hover:shadow-md transition-all duration-300">
-                        <img src="{{ $img->url }}" alt="" class="w-full h-full object-cover hover:scale-110 transition-transform duration-300 ease-in-out">
-                    </button>
-                @endforeach
-            </div>
-            @endif
-        </div>
 
         <!-- Dress Details + Booking -->
         <div>
-            <div class="flex items-start justify-between mb-2">
-                <span class="bg-primary-50 text-primary-600 text-sm font-medium px-3 py-1 rounded-full">
-                    {{ $dress->category->name ?? '' }}
-                </span>
-                <span class="bg-{{ $dress->status === 'available' ? 'green' : 'red' }}-100 text-{{ $dress->status === 'available' ? 'green' : 'red' }}-700 text-sm font-medium px-3 py-1 rounded-full">
-                    {{ ucfirst($dress->status) }}
-                </span>
-            </div>
-
-            <!-- ── Dress Details + Booking ── -->
-            <div>
                 <!-- Category & Status badges -->
                 <div class="flex items-center gap-3 mb-4">
                     <span class="bg-primary-100 text-primary-700 border border-primary-200 text-xs font-bold px-3 py-1.5 rounded-full">
@@ -129,7 +95,7 @@
                 </div>
 
                 <!-- Specs grid -->
-                <div class="grid grid-cols-3 gap-3 mb-6">
+                <div class="grid grid-cols-2 sm:grid-cols-3 gap-3 mb-6">
                     <div class="bg-white border border-violet-100 rounded-2xl p-3 text-center shadow-sm">
                         <div class="text-xs text-gray-400 font-semibold uppercase tracking-wider mb-1">Size</div>
                         <div class="font-extrabold text-gray-900 text-sm">{{ $dress->size }}</div>
@@ -174,7 +140,11 @@
 
                     <div class="p-6">
                     @auth
-                    <form method="POST" action="{{ route('bookings.store') }}" x-data="bookingForm()" @submit.prevent="submitBooking($el)">
+                    <form method="POST" action="{{ route('bookings.store') }}"
+                          x-data="bookingForm()"
+                          @submit.prevent="submitBooking($el)"
+                          @dates-selected="startDate = $event.detail.startAd; endDate = $event.detail.endAd; checkAvailability()"
+                          @dates-cleared="startDate = ''; endDate = ''; available = null; amounts = null;">
                         @csrf
                         <input type="hidden" name="dress_id" value="{{ $dress->id }}">
                         <input type="hidden" name="start_date" x-model="startDate">
@@ -183,12 +153,14 @@
                         <!-- Calendar mode toggle -->
                         <div class="mb-5">
                             <div class="flex gap-2 mb-4 p-1 bg-gray-100 rounded-xl border border-gray-200">
-                                <button type="button" @click="calendarMode = 'bs'"
+                                <button type="button"
+                                        @click="calendarMode = 'bs'; startDate = ''; endDate = ''; available = null; amounts = null;"
                                         :class="calendarMode === 'bs' ? 'gradient-bg text-white shadow-sm' : 'text-gray-600 hover:text-gray-800'"
                                         class="flex-1 py-2.5 rounded-lg text-sm font-bold transition-all flex items-center justify-center gap-1.5">
-                                    📅 Nepali (BS)
+                                    📅 नेपाली (BS)
                                 </button>
-                                <button type="button" @click="calendarMode = 'ad'"
+                                <button type="button"
+                                        @click="calendarMode = 'ad'; startDate = ''; endDate = ''; available = null; amounts = null;"
                                         :class="calendarMode === 'ad' ? 'gradient-bg text-white shadow-sm' : 'text-gray-600 hover:text-gray-800'"
                                         class="flex-1 py-2.5 rounded-lg text-sm font-bold transition-all flex items-center justify-center gap-1.5">
                                     📅 English (AD)
@@ -201,7 +173,7 @@
                             </div>
 
                             <!-- AD Date pickers -->
-                            <div x-show="calendarMode === 'ad'" class="grid grid-cols-2 gap-3">
+                            <div x-show="calendarMode === 'ad'" class="grid grid-cols-1 sm:grid-cols-2 gap-3">
                                 <div>
                                     <label class="block text-xs font-bold text-gray-500 uppercase tracking-wider mb-1.5">Start Date</label>
                                     <input type="date" x-model="startDate" @change="checkAvailability()"
