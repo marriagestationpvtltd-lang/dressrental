@@ -143,11 +143,26 @@ class NepaliCalendarService
     ];
 
     public static array $nepaliMonthsNp = [
-        1  => 'बैशाख', 2  => 'जेठ',    3  => 'असाढ',
-        4  => 'श्रावण',5  => 'भाद्र',  6  => 'आश्विन',
+        1  => 'बैशाख', 2  => 'जेठ',    3  => 'असार',
+        4  => 'साउन',  5  => 'भदौ',    6  => 'असोज',
         7  => 'कार्तिक',8 => 'मंसिर',  9  => 'पुष',
-        10 => 'माघ',   11 => 'फाल्गुण',12 => 'चैत्र',
+        10 => 'माघ',   11 => 'फागुन',  12 => 'चैत',
     ];
+
+    /** Returns the full BS calendar data (public accessor for use in views). */
+    public static function getBsData(): array
+    {
+        return self::$bsData;
+    }
+
+    /** Returns the AD epoch string and BS epoch year used for date conversion. */
+    public static function getEpochInfo(): array
+    {
+        return [
+            'adEpoch'     => self::$adEpoch,
+            'bsEpochYear' => self::$bsEpochYear,
+        ];
+    }
 
     /**
      * The AD date corresponding to BS epoch year/month/day (2000/1/1).
