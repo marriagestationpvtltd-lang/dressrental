@@ -22,6 +22,14 @@
         width: 15rem; /* w-60 */
     }
 }
+.featured-slider-wrapper {
+    touch-action: pan-y;
+    cursor: grab;
+    user-select: none;
+}
+.featured-slider-wrapper.is-dragging {
+    cursor: grabbing;
+}
 </style>
 @endpush
 
@@ -158,13 +166,19 @@
             </a>
         </div>
 
-        <!-- Single-row infinite auto-scroll slider -->
-        <div class="overflow-hidden"
-             x-data="{ paused: false }"
-             @mouseenter="paused = true"
-             @mouseleave="paused = false">
+        <!-- Single-row infinite auto-scroll slider (drag & swipe enabled) -->
+        <div class="overflow-hidden featured-slider-wrapper"
+             :class="{ 'is-dragging': dragging }"
+             x-data="featuredSlider()"
+             @mouseenter="if (!dragging) pauseAnim()"
+             @mouseleave="if (!dragging) resumeAnim()"
+             @pointerdown="startDrag($event)"
+             @pointermove="onDrag($event)"
+             @pointerup="endDrag($event)"
+             @pointercancel="cancelDrag()"
+             @click.capture="if (hasDragged) { $event.preventDefault(); hasDragged = false; }">
             <div class="featured-slider flex gap-5"
-                 :style="{ animationPlayState: paused ? 'paused' : 'running' }">
+                 x-ref="slider">
 
                 {{-- First copy --}}
                 @foreach($featuredDresses as $dress)
@@ -271,3 +285,87 @@
 </section>
 
 @endsection
+
+@push('scripts')
+<script>
+function featuredSlider() {
+    const ANIMATION_DURATION_S = 35;
+    const DRAG_THRESHOLD_PX = 5;
+
+    return {
+        dragging: false,
+        hasDragged: false,
+        startX: 0,
+        baseX: 0,
+
+        slider() {
+            return this.$refs.slider;
+        },
+
+        getCurrentX() {
+            const matrix = new DOMMatrix(window.getComputedStyle(this.slider()).transform);
+            return matrix.m41;
+        },
+
+        pauseAnim() {
+            this.slider().style.animationPlayState = 'paused';
+        },
+
+        resumeAnim(fromX) {
+            const slider = this.slider();
+            if (fromX !== undefined) {
+                const totalWidth = slider.scrollWidth / 2;
+                let normalX = fromX % -totalWidth;
+                if (normalX > 0) normalX -= totalWidth;
+                const progress = Math.abs(normalX) / totalWidth;
+                slider.style.animationDelay = -(progress * ANIMATION_DURATION_S) + 's';
+            }
+            // Clear animation override set during drag, then resume
+            slider.style.animation = '';
+            slider.style.animationPlayState = 'running';
+        },
+
+        startDrag(e) {
+            this.hasDragged = false;
+            this.baseX = this.getCurrentX();
+            this.dragging = true;
+            this.startX = e.clientX;
+            this.slider().style.animation = 'none';
+            this.slider().style.transform = `translateX(${this.baseX}px)`;
+            this.$el.setPointerCapture(e.pointerId);
+        },
+
+        onDrag(e) {
+            if (!this.dragging) return;
+            const delta = e.clientX - this.startX;
+            if (Math.abs(delta) > DRAG_THRESHOLD_PX) this.hasDragged = true;
+            this.slider().style.transform = `translateX(${this.baseX + delta}px)`;
+        },
+
+        endDrag(e) {
+            if (!this.dragging) return;
+            this.dragging = false;
+            const currentX = this.baseX + (e.clientX - this.startX);
+            this.slider().style.transform = '';
+            this.resumeAnim(currentX);
+            // Re-apply hover pause if mouse is still over the wrapper (mouse drag only)
+            if (e.pointerType === 'mouse') {
+                const rect = this.$el.getBoundingClientRect();
+                if (e.clientX >= rect.left && e.clientX <= rect.right &&
+                    e.clientY >= rect.top && e.clientY <= rect.bottom) {
+                    this.pauseAnim();
+                }
+            }
+        },
+
+        cancelDrag() {
+            if (!this.dragging) return;
+            this.dragging = false;
+            this.hasDragged = false;
+            this.slider().style.transform = '';
+            this.resumeAnim(this.baseX);
+        },
+    };
+}
+</script>
+@endpush
