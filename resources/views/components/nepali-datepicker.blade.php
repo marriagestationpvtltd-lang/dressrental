@@ -1,42 +1,44 @@
 {{-- Nepali (BS) Date Picker Component --}}
-<div x-data="nepaliCalendar()" class="p-3 sm:p-4">
+<div x-data="nepaliCalendar()" class="p-3 sm:p-5">
 
     <!-- Calendar Header -->
     <div class="flex items-center justify-between mb-3">
         <button type="button" @click="prevMonth()"
-                class="p-2 hover:bg-gray-200 rounded-lg transition-colors">
-            <svg class="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 19l-7-7 7-7"/>
+                aria-label="अघिल्लो महिना"
+                class="min-w-[2.5rem] min-h-[2.5rem] flex items-center justify-center hover:bg-gray-100 active:bg-gray-200 rounded-xl transition-colors touch-manipulation">
+            <svg class="w-5 h-5 text-gray-600" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M15 19l-7-7 7-7"/>
             </svg>
         </button>
-        <div class="text-center">
-            <div class="font-bold text-gray-900 text-sm"
+        <div class="text-center flex-1 px-2">
+            <div class="font-extrabold text-gray-900 text-base leading-tight"
                  x-text="nepaliMonths[currentMonth - 1] + ' ' + toNepali(currentYear)"></div>
-            <div class="text-xs text-gray-400" x-text="adMonthDisplay"></div>
+            <div class="text-xs text-gray-400 mt-0.5" x-text="adMonthDisplay"></div>
         </div>
         <button type="button" @click="nextMonth()"
-                class="p-2 hover:bg-gray-200 rounded-lg transition-colors">
-            <svg class="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7"/>
+                aria-label="अर्को महिना"
+                class="min-w-[2.5rem] min-h-[2.5rem] flex items-center justify-center hover:bg-gray-100 active:bg-gray-200 rounded-xl transition-colors touch-manipulation">
+            <svg class="w-5 h-5 text-gray-600" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M9 5l7 7-7 7"/>
             </svg>
         </button>
     </div>
 
     <!-- Prompt label -->
-    <div class="text-center text-xs text-primary-600 font-medium mb-2 min-h-[1.25rem]">
-        <span x-show="!selectingEnd">सुरु मिति छान्नुहोस्</span>
-        <span x-show="selectingEnd" x-cloak>अन्त्य मिति छान्नुहोस्</span>
+    <div class="text-center text-xs text-primary-600 font-semibold mb-2 min-h-[1.375rem] bg-primary-50 rounded-lg py-1">
+        <span x-show="!selectingEnd">📅 सुरु मिति छान्नुहोस्</span>
+        <span x-show="selectingEnd" x-cloak>📅 अन्त्य मिति छान्नुहोस्</span>
     </div>
 
     <!-- Day-of-week headers (Nepali) -->
     <div class="grid grid-cols-7 mb-1">
         <template x-for="d in nepaliDays">
-            <div class="text-center text-xs font-semibold text-gray-400 py-1" x-text="d"></div>
+            <div class="text-center text-[11px] font-bold text-gray-500 py-1.5" x-text="d"></div>
         </template>
     </div>
 
     <!-- Day cells -->
-    <div class="grid grid-cols-7 gap-0.5">
+    <div class="grid grid-cols-7 gap-[3px]">
         <!-- Leading empty cells to align first day -->
         <template x-for="n in startOffset"><div></div></template>
 
@@ -46,39 +48,40 @@
                 @click="selectDay(day)"
                 :disabled="isDayBooked(day) || isPastDay(day)"
                 :class="getDayClass(day)"
-                class="relative aspect-square text-xs font-medium transition-colors flex flex-col items-center justify-center rounded-lg">
-                <span x-text="toNepali(day)" class="leading-none"></span>
-                <span x-text="getAdDay(day)" class="text-[9px] leading-none opacity-60 mt-0.5"></span>
+                class="relative aspect-square min-h-[2.5rem] text-xs font-semibold transition-colors flex flex-col items-center justify-center rounded-xl touch-manipulation">
+                <span x-text="toNepali(day)" class="leading-none text-sm"></span>
+                <span x-text="getAdDay(day)" class="text-[9px] leading-none opacity-50 mt-0.5"></span>
                 <!-- Dot under today's date -->
                 <span x-show="isToday(day)"
-                      class="absolute bottom-0.5 left-1/2 -translate-x-1/2 w-1 h-1 bg-amber-400 rounded-full pointer-events-none"></span>
+                      class="absolute bottom-1 left-1/2 -translate-x-1/2 w-1.5 h-1.5 bg-amber-400 rounded-full pointer-events-none"></span>
             </button>
         </template>
     </div>
 
     <!-- Legend -->
-    <div class="mt-2 flex items-center gap-3 text-xs text-gray-400">
-        <span class="flex items-center gap-1"><span class="inline-block w-3 h-3 rounded bg-primary-600"></span> छानिएको</span>
-        <span class="flex items-center gap-1"><span class="inline-block w-3 h-3 rounded bg-primary-100"></span> दायरा</span>
-        <span class="flex items-center gap-1"><span class="inline-block w-2 h-2 rounded-full bg-amber-400"></span> आज</span>
-        <span class="flex items-center gap-1"><span class="inline-block w-3 h-3 rounded bg-red-100 line-through text-red-300 text-center leading-3">ब</span> बुक</span>
+    <div class="mt-3 pt-2 border-t border-gray-100 flex items-center flex-wrap gap-x-3 gap-y-1.5 text-[11px] text-gray-500">
+        <span class="flex items-center gap-1.5"><span class="inline-block w-3 h-3 rounded-md bg-primary-600 flex-shrink-0"></span> छानिएको</span>
+        <span class="flex items-center gap-1.5"><span class="inline-block w-3 h-3 rounded-md bg-primary-100 flex-shrink-0"></span> दायरा</span>
+        <span class="flex items-center gap-1.5"><span class="inline-block w-3 h-3 rounded-full bg-amber-400 flex-shrink-0"></span> आज</span>
+        <span class="flex items-center gap-1.5"><span class="inline-block w-3 h-3 rounded-md bg-red-100 border border-red-200 flex-shrink-0"></span> बुक</span>
     </div>
 
     <!-- Selection summary -->
-    <div class="mt-3 border-t border-gray-100 pt-3 space-y-1">
-        <div class="flex justify-between items-center text-xs">
-            <span class="text-gray-500 font-medium">सुरु:</span>
-            <span class="font-semibold text-gray-800"
+    <div class="mt-3 border-t border-gray-100 pt-3 space-y-2">
+        <div class="flex justify-between items-center text-xs bg-gray-50 rounded-lg px-3 py-2">
+            <span class="text-gray-500 font-semibold flex items-center gap-1">🟢 सुरु</span>
+            <span class="font-bold text-gray-800"
                   x-text="startBs ? toNepaliDate(startBs) + ' (' + startAd + ')' : '—'"></span>
         </div>
-        <div class="flex justify-between items-center text-xs">
-            <span class="text-gray-500 font-medium">अन्त्य:</span>
-            <span class="font-semibold text-gray-800"
+        <div class="flex justify-between items-center text-xs bg-gray-50 rounded-lg px-3 py-2">
+            <span class="text-gray-500 font-semibold flex items-center gap-1">🔴 अन्त्य</span>
+            <span class="font-bold text-gray-800"
                   x-text="endBs ? toNepaliDate(endBs) + ' (' + endAd + ')' : '—'"></span>
         </div>
         <button type="button" x-show="startBs" @click="clearSelection()"
-                class="text-xs text-red-500 hover:text-red-700 transition-colors mt-1">
-            ✕ मेटाउनुहोस्
+                aria-label="मिति छनोट मेटाउनुहोस्"
+                class="w-full text-xs text-red-500 hover:text-red-700 active:text-red-800 transition-colors py-1.5 rounded-lg hover:bg-red-50 touch-manipulation font-medium">
+            ✕ छनोट मेटाउनुहोस्
         </button>
     </div>
 </div>

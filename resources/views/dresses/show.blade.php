@@ -169,17 +169,18 @@
 
                 <!-- ── Booking Form ── -->
                 @if($dress->status === 'available')
-                <div class="bg-white rounded-3xl border-2 border-violet-200 shadow-card overflow-hidden">
+                {{-- overflow-visible is intentional: the Nepali calendar popup must not be clipped --}}
+                <div class="bg-white rounded-3xl border-2 border-violet-200 shadow-card">
                     <!-- Booking header -->
-                    <div class="gradient-bg px-6 py-4">
+                    <div class="gradient-bg px-5 py-4 rounded-t-3xl">
                         <h3 class="font-extrabold text-white text-base flex items-center gap-2">
-                            <svg class="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z"/></svg>
+                            <svg class="w-5 h-5 flex-shrink-0" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z"/></svg>
                             Book This Dress
                         </h3>
-                        <p class="text-violet-200 text-xs mt-0.5">Select dates to check availability & pricing</p>
+                        <p class="text-violet-200 text-xs mt-0.5">मिति छान्नुहोस् — उपलब्धता र मूल्य हेर्नुहोस्</p>
                     </div>
 
-                    <div class="p-6">
+                    <div class="p-4 sm:p-6">
                     @auth
                     <form method="POST" action="{{ route('bookings.store') }}"
                           x-data="bookingForm()"
@@ -193,62 +194,71 @@
                         <input type="hidden" name="start_date" x-model="startDate">
                         <input type="hidden" name="end_date" x-model="endDate">
 
-                        <!-- Calendar mode toggle -->
-                        <div class="mb-5">
-                            <div class="flex gap-2 mb-4 p-1 bg-gray-100 rounded-xl border border-gray-200">
+                        <!-- Step 1: Calendar mode toggle -->
+                        <div class="mb-2">
+                            <p class="text-xs font-bold text-gray-400 uppercase tracking-wider mb-2">चरण १ — क्यालेन्डर छान्नुहोस्</p>
+                            <div class="flex gap-2 p-1 bg-gray-100 rounded-xl border border-gray-200">
                                 <button type="button"
                                         @click="calendarMode = 'bs'; startDate = ''; endDate = ''; available = null; amounts = null; startBsDate = ''; endBsDate = ''; calendarOpen = false"
-                                        :class="calendarMode === 'bs' ? 'gradient-bg text-white shadow-sm' : 'text-gray-600 hover:text-gray-800'"
-                                        class="flex-1 py-2.5 rounded-lg text-sm font-bold transition-all flex items-center justify-center gap-1.5">
+                                        :class="calendarMode === 'bs' ? 'gradient-bg text-white shadow-sm' : 'text-gray-600 hover:text-gray-800 hover:bg-white'"
+                                        class="flex-1 py-2.5 rounded-lg text-sm font-bold transition-all flex items-center justify-center gap-1.5 touch-manipulation">
                                     📅 नेपाली (BS)
                                 </button>
                                 <button type="button"
                                         @click="calendarMode = 'ad'; startDate = ''; endDate = ''; available = null; amounts = null; startBsDate = ''; endBsDate = ''; calendarOpen = false"
-                                        :class="calendarMode === 'ad' ? 'gradient-bg text-white shadow-sm' : 'text-gray-600 hover:text-gray-800'"
-                                        class="flex-1 py-2.5 rounded-lg text-sm font-bold transition-all flex items-center justify-center gap-1.5">
+                                        :class="calendarMode === 'ad' ? 'gradient-bg text-white shadow-sm' : 'text-gray-600 hover:text-gray-800 hover:bg-white'"
+                                        class="flex-1 py-2.5 rounded-lg text-sm font-bold transition-all flex items-center justify-center gap-1.5 touch-manipulation">
                                     📅 English (AD)
                                 </button>
                             </div>
+                        </div>
+
+                        <!-- Step 2: Date selection -->
+                        <div class="mb-5">
+                            <p class="text-xs font-bold text-gray-400 uppercase tracking-wider mb-2">चरण २ — मिति छान्नुहोस्</p>
 
                             <!-- BS Calendar (popup triggered by date inputs) -->
                             <div x-show="calendarMode === 'bs'" class="relative" @click.outside="calendarOpen = false">
                                 <!-- Date display / trigger inputs -->
                                 <div class="grid grid-cols-1 sm:grid-cols-2 gap-3">
                                     <div>
-                                        <label class="block text-xs font-bold text-gray-500 uppercase tracking-wider mb-1.5">सुरु मिति (BS)</label>
+                                        <label class="block text-xs font-semibold text-gray-500 mb-1.5">🟢 सुरु मिति (BS)</label>
                                         <div @click="calendarOpen = !calendarOpen"
-                                             :class="calendarOpen ? 'border-primary-400 ring-2 ring-primary-200' : 'border-violet-200 hover:border-primary-300'"
-                                             class="w-full bg-violet-50/50 rounded-xl px-3 py-2.5 text-sm cursor-pointer flex items-center gap-2 transition-colors border">
+                                             :class="calendarOpen ? 'border-primary-400 ring-2 ring-primary-200 bg-primary-50' : 'border-violet-200 hover:border-primary-300 bg-violet-50/50'"
+                                             class="w-full rounded-xl px-3 py-3 text-sm cursor-pointer flex items-center gap-2 transition-colors border touch-manipulation min-h-[3rem]">
                                             <svg class="w-4 h-4 text-gray-400 flex-shrink-0" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                                                 <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z"/>
                                             </svg>
-                                            <span :class="startBsDate ? 'text-gray-800' : 'text-gray-400'"
+                                            <span :class="startBsDate ? 'text-gray-800 font-semibold' : 'text-gray-400'"
                                                   x-text="startBsDate ? formatBsDate(startBsDate) : 'सुरु मिति छान्नुहोस्'"></span>
                                         </div>
                                     </div>
                                     <div>
-                                        <label class="block text-xs font-bold text-gray-500 uppercase tracking-wider mb-1.5">अन्त्य मिति (BS)</label>
+                                        <label class="block text-xs font-semibold text-gray-500 mb-1.5">🔴 अन्त्य मिति (BS)</label>
                                         <div @click="calendarOpen = !calendarOpen"
-                                             :class="calendarOpen ? 'border-primary-400 ring-2 ring-primary-200' : 'border-violet-200 hover:border-primary-300'"
-                                             class="w-full bg-violet-50/50 rounded-xl px-3 py-2.5 text-sm cursor-pointer flex items-center gap-2 transition-colors border">
+                                             :class="calendarOpen ? 'border-primary-400 ring-2 ring-primary-200 bg-primary-50' : 'border-violet-200 hover:border-primary-300 bg-violet-50/50'"
+                                             class="w-full rounded-xl px-3 py-3 text-sm cursor-pointer flex items-center gap-2 transition-colors border touch-manipulation min-h-[3rem]">
                                             <svg class="w-4 h-4 text-gray-400 flex-shrink-0" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                                                 <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z"/>
                                             </svg>
-                                            <span :class="endBsDate ? 'text-gray-800' : 'text-gray-400'"
+                                            <span :class="endBsDate ? 'text-gray-800 font-semibold' : 'text-gray-400'"
                                                   x-text="endBsDate ? formatBsDate(endBsDate) : 'अन्त्य मिति छान्नुहोस्'"></span>
                                         </div>
                                     </div>
                                 </div>
 
-                                <!-- Calendar popup -->
+                                <!-- Calendar popup — rendered outside overflow constraints -->
                                 <div x-show="calendarOpen"
+                                     role="dialog"
+                                     aria-modal="true"
+                                     aria-label="नेपाली मिति छान्ने क्यालेन्डर"
                                      x-transition:enter="transition ease-out duration-100"
                                      x-transition:enter-start="opacity-0 -translate-y-1"
                                      x-transition:enter-end="opacity-100 translate-y-0"
                                      x-transition:leave="transition ease-in duration-75"
                                      x-transition:leave-start="opacity-100 translate-y-0"
                                      x-transition:leave-end="opacity-0 -translate-y-1"
-                                     class="absolute z-50 left-0 right-0 top-full mt-1 bg-white rounded-2xl border border-violet-200 shadow-xl overflow-hidden">
+                                     class="absolute z-50 left-0 right-0 top-full mt-2 bg-white rounded-2xl border-2 border-violet-200 shadow-2xl max-h-[85vh] overflow-y-auto">
                                     @include('components.nepali-datepicker')
                                 </div>
                             </div>
@@ -256,52 +266,52 @@
                             <!-- AD Date pickers -->
                             <div x-show="calendarMode === 'ad'" class="grid grid-cols-1 sm:grid-cols-2 gap-3">
                                 <div>
-                                    <label class="block text-xs font-bold text-gray-500 uppercase tracking-wider mb-1.5">Start Date</label>
+                                    <label class="block text-xs font-semibold text-gray-500 mb-1.5">🟢 Start Date</label>
                                     <input type="date" x-model="startDate" @change="checkAvailability()"
                                            min="{{ date('Y-m-d') }}"
-                                           class="w-full border border-violet-200 bg-violet-50/50 rounded-xl px-3 py-2.5 text-sm focus:ring-2 focus:ring-primary-500 focus:border-primary-400 outline-none transition-colors">
+                                           class="w-full border border-violet-200 bg-violet-50/50 rounded-xl px-3 py-3 text-sm focus:ring-2 focus:ring-primary-500 focus:border-primary-400 outline-none transition-colors min-h-[3rem]">
                                 </div>
                                 <div>
-                                    <label class="block text-xs font-bold text-gray-500 uppercase tracking-wider mb-1.5">End Date</label>
+                                    <label class="block text-xs font-semibold text-gray-500 mb-1.5">🔴 End Date</label>
                                     <input type="date" x-model="endDate" @change="checkAvailability()"
                                            :min="startDate || '{{ date('Y-m-d') }}'"
-                                           class="w-full border border-violet-200 bg-violet-50/50 rounded-xl px-3 py-2.5 text-sm focus:ring-2 focus:ring-primary-500 focus:border-primary-400 outline-none transition-colors">
+                                           class="w-full border border-violet-200 bg-violet-50/50 rounded-xl px-3 py-3 text-sm focus:ring-2 focus:ring-primary-500 focus:border-primary-400 outline-none transition-colors min-h-[3rem]">
                                 </div>
                             </div>
                         </div>
 
                         <!-- Checking state -->
-                        <div x-show="checking" class="text-center py-3 text-sm text-gray-500 flex items-center justify-center gap-2">
+                        <div x-show="checking" class="text-center py-4 text-sm text-gray-500 flex items-center justify-center gap-2 bg-gray-50 rounded-2xl mb-4">
                             <svg class="w-4 h-4 animate-spin text-primary-500" fill="none" viewBox="0 0 24 24"><circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle><path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4z"></path></svg>
-                            Checking availability...
+                            उपलब्धता जाँच गर्दैछ...
                         </div>
 
-                        <!-- Available -->
+                        <!-- Available — Step 3 -->
                         <div x-show="!checking && available === true" x-cloak
-                             class="bg-emerald-50 border-2 border-emerald-200 rounded-2xl p-5 mb-4">
-                            <div class="flex items-center gap-2 text-emerald-700 font-bold mb-3">
-                                <div class="w-6 h-6 bg-emerald-500 rounded-full flex items-center justify-center">
+                             class="bg-emerald-50 border-2 border-emerald-200 rounded-2xl p-4 mb-4">
+                            <div class="flex items-center gap-2 text-emerald-700 font-extrabold mb-3 text-sm">
+                                <div class="w-6 h-6 bg-emerald-500 rounded-full flex items-center justify-center flex-shrink-0">
                                     <svg class="w-4 h-4 text-white" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M5 13l4 4L19 7"/></svg>
                                 </div>
-                                Available! 🎉
+                                उपलब्ध छ! 🎉
                             </div>
-                            <div class="grid grid-cols-2 gap-2.5" x-show="amounts">
+                            <div class="grid grid-cols-2 gap-2" x-show="amounts">
                                 @foreach([
-                                    ['label' => 'Days', 'key' => 'total_days', 'type' => 'num'],
-                                    ['label' => 'Rental', 'key' => 'rental_amount', 'type' => 'price'],
-                                    ['label' => 'Deposit', 'key' => 'deposit_amount', 'type' => 'price'],
-                                    ['label' => 'Total', 'key' => 'total_amount', 'type' => 'price'],
+                                    ['label' => 'दिनहरू', 'key' => 'total_days', 'type' => 'num'],
+                                    ['label' => 'भाडा', 'key' => 'rental_amount', 'type' => 'price'],
+                                    ['label' => 'धरौटी', 'key' => 'deposit_amount', 'type' => 'price'],
+                                    ['label' => 'जम्मा', 'key' => 'total_amount', 'type' => 'price'],
                                 ] as $row)
-                                <div class="bg-white rounded-xl p-2.5 border border-emerald-100 text-center">
-                                    <div class="text-xs text-gray-400 font-semibold">{{ $row['label'] }}</div>
-                                    <div class="font-extrabold text-gray-900 text-sm mt-0.5">
-                                        @if($row['type'] === 'price')₨<span x-text="formatAmount(amounts?.{{ $row['key'] }})"></span>@else<span x-text="amounts?.{{ $row['key'] }}"></span>@endif
+                                <div class="bg-white rounded-xl p-3 border border-emerald-100 text-center shadow-sm">
+                                    <div class="text-xs text-gray-400 font-semibold mb-1">{{ $row['label'] }}</div>
+                                    <div class="font-extrabold text-gray-900 text-base leading-tight">
+                                        @if($row['type'] === 'price')<span class="text-sm">₨</span><span x-text="formatAmount(amounts?.{{ $row['key'] }})"></span>@else<span x-text="amounts?.{{ $row['key'] }}"></span>@endif
                                     </div>
                                 </div>
                                 @endforeach
                             </div>
-                            <div class="mt-3 bg-primary-600 text-white rounded-xl px-4 py-2.5 text-center text-sm font-bold">
-                                Advance (50%): ₨<span x-text="formatAmount(amounts?.advance_amount)"></span>
+                            <div class="mt-3 gradient-bg text-white rounded-xl px-4 py-3 text-center text-sm font-extrabold shadow-sm">
+                                अग्रिम (५०%): ₨<span x-text="formatAmount(amounts?.advance_amount)"></span>
                             </div>
                         </div>
 
@@ -311,33 +321,33 @@
                             <div class="w-6 h-6 bg-rose-500 rounded-full flex items-center justify-center shrink-0 mt-0.5">
                                 <svg class="w-4 h-4 text-white" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M6 18L18 6M6 6l12 12"/></svg>
                             </div>
-                            <p class="text-rose-700 font-semibold text-sm">Not available for selected dates. Please choose different dates.</p>
+                            <p class="text-rose-700 font-semibold text-sm">छानिएको मितिमा उपलब्ध छैन। कृपया अर्को मिति रोज्नुहोस्।</p>
                         </div>
 
                         <!-- Notes -->
-                        <div class="mb-5">
-                            <label class="block text-xs font-bold text-gray-500 uppercase tracking-wider mb-1.5">Special Notes (optional)</label>
-                            <textarea name="notes" rows="2" placeholder="Any special requests or notes..."
+                        <div class="mb-4">
+                            <label for="booking-notes" class="block text-xs font-semibold text-gray-500 mb-1.5">विशेष नोट (वैकल्पिक)</label>
+                            <textarea id="booking-notes" name="notes" rows="2" placeholder="कुनै विशेष अनुरोध वा टिप्पणी..."
                                       class="w-full border border-violet-200 bg-violet-50/50 rounded-xl px-3 py-2.5 text-sm focus:ring-2 focus:ring-primary-500 focus:border-primary-400 outline-none resize-none transition-colors"></textarea>
                         </div>
 
                         <button type="submit"
                                 :disabled="!available || !startDate || !endDate"
                                 :class="available && startDate && endDate
-                                    ? 'gradient-bg hover:opacity-90 cursor-pointer shadow-glow-primary'
+                                    ? 'gradient-bg hover:opacity-90 cursor-pointer shadow-glow-primary active:scale-[0.98]'
                                     : 'bg-gray-200 text-gray-400 cursor-not-allowed'"
-                                class="w-full text-white font-extrabold py-4 rounded-2xl text-lg transition-all shadow-lg flex items-center justify-center gap-2">
+                                class="w-full text-white font-extrabold py-4 rounded-2xl text-base transition-all shadow-lg flex items-center justify-center gap-2 touch-manipulation">
                             <svg class="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 3h2l.4 2M7 13h10l4-8H5.4M7 13L5.4 5M7 13l-2.293 2.293c-.63.63-.184 1.707.707 1.707H17m0 0a2 2 0 100 4 2 2 0 000-4zm-8 2a2 2 0 11-4 0 2 2 0 014 0z"/></svg>
-                            Book Now &amp; Pay
+                            अहिले बुक गर्नुहोस् &amp; भुक्तानी गर्नुहोस्
                         </button>
                     </form>
                     @else
                     <div class="text-center py-8">
                         <div class="w-16 h-16 bg-violet-100 border-2 border-violet-200 rounded-3xl flex items-center justify-center text-3xl mx-auto mb-4">🔐</div>
-                        <p class="text-gray-600 mb-5 font-medium">Please login to book this dress</p>
-                        <a href="{{ route('login') }}" class="inline-flex items-center justify-center gap-2 gradient-bg text-white font-extrabold px-8 py-3.5 rounded-2xl hover:opacity-90 transition-opacity shadow-lg">
+                        <p class="text-gray-600 mb-5 font-medium">यो ड्रेस बुक गर्न लगइन गर्नुहोस्</p>
+                        <a href="{{ route('login') }}" class="inline-flex items-center justify-center gap-2 gradient-bg text-white font-extrabold px-8 py-3.5 rounded-2xl hover:opacity-90 transition-opacity shadow-lg touch-manipulation">
                             <svg class="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M11 16l-4-4m0 0l4-4m-4 4h14m-5 4v1a3 3 0 01-3 3H6a3 3 0 01-3-3V7a3 3 0 013-3h7a3 3 0 013 3v1"/></svg>
-                            Login to Book
+                            लगइन गर्नुहोस्
                         </a>
                     </div>
                     @endauth
