@@ -143,6 +143,16 @@ class SettingsSeeder extends Seeder
                 'label'       => 'Tax Percentage (%)',
                 'description' => 'Tax percentage applied on the payment amount (e.g. 13 for 13% VAT).',
             ],
+
+            // ─── AI ──────────────────────────────────────────────────────────
+            [
+                'key'         => 'gemini_api_key',
+                'value'       => '',
+                'type'        => 'password',
+                'group'       => 'ai',
+                'label'       => 'Google Gemini API Key',
+                'description' => 'Free API key for Google Gemini AI. Get yours at https://aistudio.google.com/ — used to auto-generate dress descriptions from photos.',
+            ],
         ];
 
         foreach ($settings as $data) {
