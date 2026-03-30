@@ -42,6 +42,24 @@ class DashboardController extends Controller
             ->pluck('total', 'month')
             ->toArray();
 
-        return view('admin.dashboard', compact('stats', 'recentBookings', 'recentPayments', 'monthlyRevenue'));
+        // Bookings due for return today or already overdue (status = active)
+        $dueReturns = Booking::with(['user', 'dress'])
+            ->where('status', 'active')
+            ->whereDate('end_date', '<=', today())
+            ->orderBy('end_date')
+            ->get();
+
+        // Bookings due for return in the next 3 days (status = active, not yet overdue)
+        $upcomingReturns = Booking::with(['user', 'dress'])
+            ->where('status', 'active')
+            ->whereDate('end_date', '>', today())
+            ->whereDate('end_date', '<=', today()->addDays(3))
+            ->orderBy('end_date')
+            ->get();
+
+        return view('admin.dashboard', compact(
+            'stats', 'recentBookings', 'recentPayments', 'monthlyRevenue',
+            'dueReturns', 'upcomingReturns'
+        ));
     }
 }

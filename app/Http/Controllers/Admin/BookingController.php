@@ -43,9 +43,18 @@ class BookingController extends Controller
     public function update(Request $request, Booking $booking)
     {
         $data = $request->validate([
-            'status'     => 'required|in:pending,paid,active,returned,completed,cancelled',
-            'notes'      => 'nullable|string',
-            'fine_amount'=> 'nullable|numeric|min:0',
+            'status'          => 'required|in:pending,paid,active,returned,completed,cancelled',
+            'notes'           => 'nullable|string',
+            'fine_amount'     => 'nullable|numeric|min:0',
+            'discount_type'   => 'nullable|in:none,fixed,percentage',
+            'discount_amount' => [
+                'nullable', 'numeric', 'min:0',
+                function ($attribute, $value, $fail) use ($request) {
+                    if ($request->discount_type === 'percentage' && $value > 100) {
+                        $fail('Discount percentage cannot exceed 100%.');
+                    }
+                },
+            ],
         ]);
 
         $previousStatus = $booking->status;
@@ -53,6 +62,21 @@ class BookingController extends Controller
         if ($data['status'] === 'returned' && ! $booking->returned_at) {
             $data['returned_at'] = now();
         }
+
+        // Recalculate total_amount when discount is updated
+        $discountType   = $data['discount_type']   ?? $booking->discount_type;
+        $discountAmount = $data['discount_amount']  ?? $booking->discount_amount;
+        $baseAmount     = $booking->rental_amount + $booking->deposit_amount;
+
+        if ($discountType === 'percentage') {
+            $discountApplied = round($baseAmount * ($discountAmount / 100), 2);
+        } elseif ($discountType === 'fixed') {
+            $discountApplied = min((float) $discountAmount, $baseAmount);
+        } else {
+            $discountApplied = 0;
+        }
+
+        $data['total_amount'] = max(0, $baseAmount - $discountApplied);
 
         $booking->update($data);
 

@@ -38,9 +38,29 @@
                 <td class="px-5 py-3 text-sm text-gray-500">#{{ $booking->id }}</td>
                 <td class="px-5 py-3">
                     <div class="text-sm font-medium text-gray-900">{{ $booking->user->name }}</div>
-                    <div class="text-xs text-gray-500">{{ $booking->user->phone }}</div>
+                    @if($booking->user->phone)
+                        <a href="https://wa.me/{{ preg_replace('/\D/', '', $booking->user->phone) }}" target="_blank"
+                           class="text-xs text-green-600 hover:text-green-700 flex items-center gap-1">
+                            <svg class="w-3 h-3" viewBox="0 0 24 24" fill="currentColor"><path d="M17.472 14.382c-.297-.149-1.758-.867-2.03-.967-.273-.099-.471-.148-.67.15-.197.297-.767.966-.94 1.164-.173.199-.347.223-.644.075-.297-.15-1.255-.463-2.39-1.475-.883-.788-1.48-1.761-1.653-2.059-.173-.297-.018-.458.13-.606.134-.133.298-.347.446-.52.149-.174.198-.298.298-.497.099-.198.05-.371-.025-.52-.075-.149-.669-1.612-.916-2.207-.242-.579-.487-.5-.669-.51-.173-.008-.371-.01-.57-.01-.198 0-.52.074-.792.372-.272.297-1.04 1.016-1.04 2.479 0 1.462 1.065 2.875 1.213 3.074.149.198 2.096 3.2 5.077 4.487.709.306 1.262.489 1.694.625.712.227 1.36.195 1.871.118.571-.085 1.758-.719 2.006-1.413.248-.694.248-1.289.173-1.413-.074-.124-.272-.198-.57-.347z"/><path d="M12 0C5.373 0 0 5.373 0 12c0 2.116.55 4.102 1.514 5.834L0 24l6.334-1.482A11.953 11.953 0 0012 24c6.627 0 12-5.373 12-12S18.627 0 12 0zm0 21.818a9.8 9.8 0 01-5.031-1.384l-.361-.214-3.741.875.909-3.63-.236-.374A9.793 9.793 0 012.182 12C2.182 6.57 6.57 2.182 12 2.182S21.818 6.57 21.818 12 17.43 21.818 12 21.818z"/></svg>
+                            {{ $booking->user->phone }}
+                        </a>
+                    @else
+                        <div class="text-xs text-gray-500">—</div>
+                    @endif
                 </td>
-                <td class="px-5 py-3 text-sm text-gray-600 hidden md:table-cell">{{ $booking->dress->name ?? '-' }}</td>
+                <td class="px-5 py-3 hidden md:table-cell">
+                    <div class="flex items-center gap-2">
+                        @php $dressImage = $booking->dress->primaryImage(); @endphp
+                        @if($dressImage)
+                            <img src="{{ $dressImage->url }}" class="w-9 h-9 rounded-lg object-cover shrink-0" alt="">
+                        @else
+                            <div class="w-9 h-9 rounded-lg bg-gray-100 flex items-center justify-center shrink-0">
+                                <svg class="w-4 h-4 text-gray-400" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 16l4.586-4.586a2 2 0 012.828 0L16 16m-2-2l1.586-1.586a2 2 0 012.828 0L20 14m-6-6h.01M6 20h12a2 2 0 002-2V6a2 2 0 00-2-2H6a2 2 0 00-2 2v12a2 2 0 002 2z"/></svg>
+                            </div>
+                        @endif
+                        <span class="text-sm text-gray-600">{{ $booking->dress->name ?? '-' }}</span>
+                    </div>
+                </td>
                 <td class="px-5 py-3 text-xs text-gray-500 hidden md:table-cell">
                     {{ $booking->bs_start_date ?? $booking->start_date->format('Y-m-d') }}<br>
                     → {{ $booking->bs_end_date ?? $booking->end_date->format('Y-m-d') }}
