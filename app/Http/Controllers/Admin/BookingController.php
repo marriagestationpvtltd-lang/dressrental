@@ -88,7 +88,7 @@ class BookingController extends Controller
         if ($booking->status !== $previousStatus) {
             try {
                 Mail::to($booking->user->email)->send(new BookingStatusUpdated($booking->load(['dress', 'user']), $previousStatus));
-            } catch (\Exception) {
+            } catch (\Throwable) {
                 // Non-fatal: status is updated, email delivery failure should not block admin flow
             }
         }
@@ -105,7 +105,7 @@ class BookingController extends Controller
         if ($booking->status !== $previousStatus) {
             try {
                 Mail::to($booking->user->email)->send(new BookingStatusUpdated($booking->load(['dress', 'user']), $previousStatus));
-            } catch (\Exception) {
+            } catch (\Throwable) {
                 // Non-fatal: status is updated, email delivery failure should not block admin flow
             }
         }

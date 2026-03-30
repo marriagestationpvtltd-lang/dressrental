@@ -57,7 +57,7 @@ class BookingController extends Controller
 
         try {
             Mail::to($booking->user->email)->send(new BookingConfirmation($booking->load(['dress', 'user'])));
-        } catch (\Exception) {
+        } catch (\Throwable) {
             // Non-fatal: booking is created, email delivery failure should not block user flow
         }
 
