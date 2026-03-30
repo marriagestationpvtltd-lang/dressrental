@@ -2,6 +2,7 @@
 
 namespace App\Services;
 
+use App\Models\Setting;
 use Illuminate\Support\Facades\Http;
 
 class EsewaService
@@ -13,10 +14,24 @@ class EsewaService
 
     public function __construct()
     {
-        $this->merchantId = config('payment.esewa.merchant_id');
-        $this->secretKey  = config('payment.esewa.secret_key');
-        $this->sandbox    = config('payment.esewa.sandbox', true);
-        $this->baseUrl    = $this->sandbox
+        // Prefer database settings; fall back to config / env when not set.
+        $dbMerchantId = Setting::getRaw('esewa_merchant_id');
+        $dbSecretKey  = Setting::getRaw('esewa_secret_key');
+        $dbSandbox    = Setting::getRaw('esewa_sandbox');
+
+        $this->merchantId = ($dbMerchantId !== null && $dbMerchantId !== '')
+            ? $dbMerchantId
+            : config('payment.esewa.merchant_id');
+
+        $this->secretKey  = ($dbSecretKey !== null && $dbSecretKey !== '')
+            ? $dbSecretKey
+            : config('payment.esewa.secret_key');
+
+        $this->sandbox = ($dbSandbox !== null && $dbSandbox !== '')
+            ? filter_var($dbSandbox, FILTER_VALIDATE_BOOLEAN)
+            : config('payment.esewa.sandbox', true);
+
+        $this->baseUrl = $this->sandbox
             ? 'https://rc-epay.esewa.com.np'
             : 'https://epay.esewa.com.np';
     }

@@ -52,6 +52,24 @@ class Setting extends Model
         Cache::forget('settings.all');
     }
 
+    /**
+     * Return the raw (un-cast) string value for a key, or null when the key is
+     * not present in the database at all.  Useful to distinguish between
+     * "never configured" (null) and "explicitly set to empty/false" ('').
+     */
+    public static function getRaw(string $key): ?string
+    {
+        $all = self::allCached();
+
+        if (! array_key_exists($key, $all)) {
+            return null;
+        }
+
+        $val = $all[$key]['value'];
+
+        return $val === null ? null : (string) $val;
+    }
+
     // ─── Internals ────────────────────────────────────────────────────────────
 
     /** Load all settings from cache or database. */
