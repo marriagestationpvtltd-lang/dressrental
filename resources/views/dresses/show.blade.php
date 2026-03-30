@@ -275,6 +275,45 @@
             </div>
         </div>
 
+        <!-- ── Ornament Recommendations ── -->
+        @if($ornamentRecommendations->count())
+        <section class="mt-16 pt-10 border-t-2 border-dashed border-violet-100">
+            <div class="flex items-end justify-between mb-8">
+                <div>
+                    <span class="inline-block text-xs font-bold text-fuchsia-600 uppercase tracking-widest bg-fuchsia-50 border border-fuchsia-200 rounded-full px-3 py-1 mb-2">Complete the Look</span>
+                    <h2 class="text-xl md:text-2xl font-extrabold text-gray-900">Recommended Accessories</h2>
+                    <p class="text-sm text-gray-500 mt-1">These ornaments and accessories go perfectly with this dress</p>
+                </div>
+            </div>
+            <div class="grid grid-cols-2 md:grid-cols-4 gap-4 md:gap-5">
+                @foreach($ornamentRecommendations as $ornament)
+                <div class="bg-white rounded-2xl border border-violet-100 shadow-sm overflow-hidden hover:shadow-md transition-shadow group">
+                    <div class="aspect-square bg-gradient-to-br from-fuchsia-50 to-pink-50 relative overflow-hidden">
+                        <img src="{{ $ornament->image_url }}"
+                             alt="{{ $ornament->name }}"
+                             class="w-full h-full object-cover group-hover:scale-105 transition-transform duration-300">
+                        <span class="absolute top-2 left-2 bg-fuchsia-100 text-fuchsia-700 text-xs font-bold px-2 py-0.5 rounded-full border border-fuchsia-200">
+                            {{ \App\Models\Ornament::categoryLabel($ornament->category) }}
+                        </span>
+                    </div>
+                    <div class="p-3">
+                        <h3 class="font-bold text-gray-900 text-sm leading-tight mb-1 truncate">{{ $ornament->name }}</h3>
+                        @if($ornament->description)
+                            <p class="text-xs text-gray-500 line-clamp-2 mb-2">{{ $ornament->description }}</p>
+                        @endif
+                        <div class="flex items-center justify-between">
+                            <span class="text-primary-600 font-extrabold text-sm">₨{{ number_format($ornament->price_per_day) }}<span class="text-gray-400 font-normal text-xs">/day</span></span>
+                            @if($ornament->deposit_amount > 0)
+                                <span class="text-xs text-gray-400">+₨{{ number_format($ornament->deposit_amount) }} dep.</span>
+                            @endif
+                        </div>
+                    </div>
+                </div>
+                @endforeach
+            </div>
+        </section>
+        @endif
+
         <!-- ── Recommendations ── -->
         @if($recommendations->count())
         <section class="mt-16 pt-10 border-t-2 border-dashed border-violet-100">
