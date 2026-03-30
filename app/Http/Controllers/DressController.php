@@ -90,9 +90,30 @@ class DressController extends Controller
         }
 
         $dress->increment('views');
-        $dress->load(['images', 'category', 'ornaments']);
+        $dress->load(['images', 'category.parent', 'ornaments']);
 
-        $ornamentRecommendations = $dress->ornaments()->available()->get();
+        // ── Smart ornament recommendation cascade ─────────────────
+        // Priority 1: ornaments directly attached to this specific dress
+        $directOrnaments = $dress->ornaments()->available()->get();
+
+        // Priority 2: ornaments recommended for the dress's exact category/subcategory
+        // Priority 3: ornaments recommended for the parent category (inherited)
+        $categoryOrnaments = collect();
+        if ($dress->category) {
+            $categoryOrnaments = $dress->category->recommendedOrnaments()->available()->get();
+
+            if ($dress->category->parent_id && $dress->category->parent) {
+                $parentOrnaments   = $dress->category->parent->recommendedOrnaments()->available()->get();
+                $categoryOrnaments = $categoryOrnaments->merge(
+                    $parentOrnaments->whereNotIn('id', $categoryOrnaments->pluck('id'))
+                );
+            }
+        }
+
+        // Merge: dress-specific ornaments first, then category-based (no duplicates)
+        $ornamentRecommendations = $directOrnaments
+            ->merge($categoryOrnaments->whereNotIn('id', $directOrnaments->pluck('id')))
+            ->values();
 
         $recommendations = Dress::with(['images', 'category'])
             ->available()

@@ -45,6 +45,16 @@ class Ornament extends Model
         return $this->belongsToMany(Dress::class, 'dress_ornament');
     }
 
+    public function recommendedForCategories(): BelongsToMany
+    {
+        return $this->belongsToMany(
+            DressCategory::class,
+            'category_ornament_recommendations',
+            'ornament_id',
+            'dress_category_id'
+        )->withPivot('sort_order');
+    }
+
     public function getImageUrlAttribute(): string
     {
         if ($this->image_path) {
