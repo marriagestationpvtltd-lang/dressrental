@@ -74,7 +74,10 @@ deployment:
     #    Requires ADMIN_EMAIL, ADMIN_PASSWORD, and ADMIN_PHONE to be set in .env.
     - php artisan db:seed --class=ProductionSeeder --force
 
-    # 8. Clear and rebuild all caches
+    # 8. Clear all stale caches first, then rebuild fresh ones.
+    #    optimize:clear wipes config, route, view, event, and bootstrap caches
+    #    so that any leftover files from a previous deploy cannot interfere.
+    - php artisan optimize:clear
     - php artisan config:cache
     - php artisan route:cache
     - php artisan view:cache
