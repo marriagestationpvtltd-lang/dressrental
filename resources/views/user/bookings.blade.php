@@ -34,6 +34,29 @@
                         @else
                             <div class="w-full h-full flex items-center justify-center text-3xl">👗</div>
                         @endif
+    @if($bookings->count())
+    <div class="space-y-4">
+        @foreach($bookings as $booking)
+        <div class="bg-white rounded-2xl shadow-sm border border-gray-100 overflow-hidden">
+            <div class="flex items-start gap-4 p-4">
+                <div class="w-20 h-20 rounded-xl overflow-hidden bg-gray-100 shrink-0">
+                    @if($booking->dress && $booking->dress->primaryImage())
+                        <img src="{{ $booking->dress->primaryImage()->url }}" class="w-full h-full object-cover" alt="">
+                    @else
+                        <div class="w-full h-full flex items-center justify-center text-3xl">👗</div>
+                    @endif
+                </div>
+                <div class="flex-1 min-w-0">
+                    <div class="flex items-start justify-between gap-2">
+                        <h3 class="font-bold text-gray-900 truncate">{{ $booking->dress->name ?? 'N/A' }}</h3>
+                        <span class="shrink-0 px-2 py-0.5 rounded-full text-xs font-medium bg-{{ $booking->status_badge_color }}-100 text-{{ $booking->status_badge_color }}-700">
+                            {{ ucfirst($booking->status) }}
+                        </span>
+                    </div>
+                    <div class="text-sm text-gray-500 mt-1">
+                        📅 {{ $booking->bs_start_date ?? $booking->start_date->format('Y-m-d') }}
+                        → {{ $booking->bs_end_date ?? $booking->end_date->format('Y-m-d') }}
+                        ({{ $booking->total_days }} days)
                     </div>
 
                     <!-- Details -->

@@ -53,6 +53,40 @@
                 </div>
                 @endif
             </div>
+        <!-- Images Gallery -->
+        <div x-data="{ activeImg: '{{ $dress->primaryImage() ? $dress->primaryImage()->url : '' }}' }">
+            <div class="aspect-square rounded-3xl overflow-hidden bg-gray-100 mb-4">
+                @if($dress->primaryImage())
+                    <img :src="activeImg" alt="{{ $dress->name }}" class="w-full h-full object-cover" id="main-img">
+                @else
+                    <div class="w-full h-full flex items-center justify-center bg-gradient-to-br from-purple-100 to-pink-100">
+                        <svg class="w-24 h-24 text-purple-300" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="1" d="M12 3l9 7-9 7-9-7 9-7z"/></svg>
+                    </div>
+                @endif
+            </div>
+            @if($dress->images->count() > 1)
+            <div class="grid grid-cols-5 gap-2">
+                @foreach($dress->images as $img)
+                    <button @click="activeImg = '{{ $img->url }}'"
+                            :class="activeImg === '{{ $img->url }}' ? 'thumb-active' : ''"
+                            class="aspect-square rounded-xl overflow-hidden border-2 border-transparent hover:border-primary-400 transition-colors">
+                        <img src="{{ $img->url }}" alt="" class="w-full h-full object-cover">
+                    </button>
+                @endforeach
+            </div>
+            @endif
+        </div>
+
+        <!-- Dress Details + Booking -->
+        <div>
+            <div class="flex items-start justify-between mb-2">
+                <span class="bg-primary-50 text-primary-600 text-sm font-medium px-3 py-1 rounded-full">
+                    {{ $dress->category->name ?? '' }}
+                </span>
+                <span class="bg-{{ $dress->status === 'available' ? 'green' : 'red' }}-100 text-{{ $dress->status === 'available' ? 'green' : 'red' }}-700 text-sm font-medium px-3 py-1 rounded-full">
+                    {{ ucfirst($dress->status) }}
+                </span>
+            </div>
 
             <!-- ── Dress Details + Booking ── -->
             <div>
