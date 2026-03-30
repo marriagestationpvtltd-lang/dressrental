@@ -36,21 +36,30 @@ class EsewaService
     public function buildFormData(array $params): array
     {
         $transactionUuid = $params['transaction_uuid'];
-        $totalAmount     = number_format($params['total_amount'], 2, '.', '');
-        $productCode     = $this->merchantId;
+        $serviceCharge   = number_format((float) setting('esewa_service_charge', 0), 2, '.', '');
+        $deliveryCharge  = number_format((float) setting('esewa_delivery_charge', 0), 2, '.', '');
+        $taxAmount       = number_format(
+            (float) setting('tax_percentage', 0) / 100 * (float) $params['amount'],
+            2, '.', ''
+        );
+        $totalWithCharges = number_format(
+            (float) $params['total_amount'] + (float) $serviceCharge + (float) $deliveryCharge + (float) $taxAmount,
+            2, '.', ''
+        );
+        $productCode = $this->merchantId;
 
         return [
-            'amount'              => number_format($params['amount'], 2, '.', ''),
-            'failure_url'         => $params['failure_url'],
-            'product_delivery_charge' => '0',
-            'product_service_charge'  => '0',
-            'product_code'        => $productCode,
-            'signature'           => $this->generateSignature($totalAmount, $transactionUuid, $productCode),
-            'signed_field_names'  => 'total_amount,transaction_uuid,product_code',
-            'success_url'         => $params['success_url'],
-            'tax_amount'          => '0',
-            'total_amount'        => $totalAmount,
-            'transaction_uuid'    => $transactionUuid,
+            'amount'                  => number_format($params['amount'], 2, '.', ''),
+            'failure_url'             => $params['failure_url'],
+            'product_delivery_charge' => $deliveryCharge,
+            'product_service_charge'  => $serviceCharge,
+            'product_code'            => $productCode,
+            'signature'               => $this->generateSignature($totalWithCharges, $transactionUuid, $productCode),
+            'signed_field_names'      => 'total_amount,transaction_uuid,product_code',
+            'success_url'             => $params['success_url'],
+            'tax_amount'              => $taxAmount,
+            'total_amount'            => $totalWithCharges,
+            'transaction_uuid'        => $transactionUuid,
         ];
     }
 
