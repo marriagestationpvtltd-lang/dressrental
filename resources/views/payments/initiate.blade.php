@@ -17,7 +17,7 @@
         <div class="flex gap-4 mb-4">
             <div class="w-16 h-16 rounded-xl overflow-hidden bg-gray-100">
                 @if($booking->dress->primaryImage())
-                    <img src="{{ asset('storage/' . $booking->dress->primaryImage()->image_path) }}" class="w-full h-full object-cover" alt="">
+                    <img src="{{ $booking->dress->primaryImage()->url }}" class="w-full h-full object-cover" alt="">
                 @endif
             </div>
             <div>

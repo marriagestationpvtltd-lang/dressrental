@@ -108,7 +108,7 @@
                     <!-- Dress image -->
                     <div class="w-14 h-14 rounded-xl overflow-hidden bg-gradient-to-br from-violet-100 to-pink-100 border border-violet-100 shrink-0">
                         @if($booking->dress && $booking->dress->primaryImage())
-                            <img src="{{ asset('storage/' . $booking->dress->primaryImage()->image_path) }}" class="w-full h-full object-cover" alt="">
+                            <img src="{{ $booking->dress->primaryImage()->url }}" class="w-full h-full object-cover" alt="">
                         @else
                             <div class="w-full h-full flex items-center justify-center text-xl">👗</div>
                         @endif

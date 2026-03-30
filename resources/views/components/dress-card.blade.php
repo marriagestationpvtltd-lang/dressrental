@@ -3,7 +3,7 @@
         <!-- Image -->
         <div class="relative overflow-hidden aspect-[3/4] bg-gradient-to-br from-violet-50 to-pink-50">
             @if($dress->primaryImage())
-                <img src="{{ asset('storage/' . $dress->primaryImage()->image_path) }}"
+                <img src="{{ $dress->primaryImage()->url }}"
                      alt="{{ $dress->name }}"
                      class="w-full h-full object-cover group-hover:scale-105 transition-transform duration-300"
                      loading="lazy">

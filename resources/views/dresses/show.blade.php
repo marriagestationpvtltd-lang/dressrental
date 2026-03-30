@@ -28,7 +28,7 @@
         <div class="grid grid-cols-1 lg:grid-cols-2 gap-8 lg:gap-12">
 
             <!-- ── Images Gallery ── -->
-            <div x-data="{ activeImg: '{{ $dress->primaryImage() ? asset('storage/' . $dress->primaryImage()->image_path) : '' }}' }">
+            <div x-data="{ activeImg: '{{ $dress->primaryImage() ? $dress->primaryImage()->url : '' }}' }">
                 <div class="aspect-square rounded-3xl overflow-hidden bg-gradient-to-br from-violet-50 to-pink-50 mb-4 border border-violet-100 shadow-card relative group">
                     @if($dress->primaryImage())
                         <img :src="activeImg" alt="{{ $dress->name }}" class="w-full h-full object-cover" id="main-img">
@@ -44,10 +44,10 @@
                 @if($dress->images->count() > 1)
                 <div class="grid grid-cols-5 gap-2">
                     @foreach($dress->images as $img)
-                        <button @click="activeImg = '{{ asset('storage/' . $img->image_path) }}'"
-                                :class="activeImg === '{{ asset('storage/' . $img->image_path) }}' ? 'thumb-active' : 'border-gray-200'"
+                        <button @click="activeImg = '{{ $img->url }}'"
+                                :class="activeImg === '{{ $img->url }}' ? 'thumb-active' : 'border-gray-200'"
                                 class="aspect-square rounded-xl overflow-hidden border-2 hover:border-primary-400 transition-all focus:outline-none">
-                            <img src="{{ asset('storage/' . $img->image_path) }}" alt="" class="w-full h-full object-cover">
+                            <img src="{{ $img->url }}" alt="" class="w-full h-full object-cover">
                         </button>
                     @endforeach
                 </div>
