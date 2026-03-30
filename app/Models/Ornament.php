@@ -45,6 +45,13 @@ class Ornament extends Model
         return $this->belongsToMany(Dress::class, 'dress_ornament');
     }
 
+    public function bookings(): BelongsToMany
+    {
+        return $this->belongsToMany(Booking::class, 'booking_ornament')
+            ->withPivot('price_per_day', 'deposit_amount', 'subtotal')
+            ->withTimestamps();
+    }
+
     public function recommendedForCategories(): BelongsToMany
     {
         return $this->belongsToMany(

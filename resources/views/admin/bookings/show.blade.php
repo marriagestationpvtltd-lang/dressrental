@@ -91,6 +91,27 @@
         </div>
     </div>
 
+    @if($booking->ornaments->count())
+    <!-- Booked Accessories -->
+    <div class="bg-white rounded-2xl shadow-sm border border-gray-100 p-5 mt-6">
+        <h3 class="font-semibold text-gray-900 mb-4">Booked Accessories</h3>
+        <div class="divide-y divide-gray-100">
+            @foreach($booking->ornaments as $ornament)
+            <div class="flex items-center gap-3 py-2 first:pt-0 last:pb-0">
+                <div class="w-10 h-10 rounded-lg overflow-hidden bg-fuchsia-50 shrink-0">
+                    <img src="{{ $ornament->image_url }}" alt="{{ $ornament->name }}" class="w-full h-full object-cover">
+                </div>
+                <div class="flex-1 min-w-0">
+                    <div class="font-medium text-gray-900 text-sm truncate">{{ $ornament->name }}</div>
+                    <div class="text-xs text-gray-400">{{ \App\Models\Ornament::categoryLabel($ornament->category) }} · ₨{{ number_format($ornament->pivot->price_per_day) }}/day + ₨{{ number_format($ornament->pivot->deposit_amount) }} deposit</div>
+                </div>
+                <div class="text-sm font-semibold text-gray-900 shrink-0">₨{{ number_format($ornament->pivot->subtotal) }}</div>
+            </div>
+            @endforeach
+        </div>
+    </div>
+    @endif
+
     <!-- Update Status -->
     <div class="bg-white rounded-2xl shadow-sm border border-gray-100 p-5 mt-6">
         <h3 class="font-semibold text-gray-900 mb-4">Update Booking</h3>

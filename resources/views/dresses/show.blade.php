@@ -5,6 +5,33 @@
 @push('styles')
 <style>
 .thumb-active { border-color: #7c3aed !important; box-shadow: 0 0 0 2px #c4b5fd; }
+
+/* Accessories horizontal slider */
+.accessories-slider {
+    display: flex;
+    gap: 0.5rem;
+    overflow-x: auto;
+    scroll-snap-type: x mandatory;
+    -webkit-overflow-scrolling: touch;
+    scrollbar-width: none; /* Firefox */
+    -ms-overflow-style: none; /* IE/Edge */
+    scroll-behavior: smooth;
+}
+.accessories-slider::-webkit-scrollbar { display: none; }
+.accessories-slider-item {
+    flex-shrink: 0;
+    width: 6.5rem;
+    scroll-snap-align: start;
+}
+@media (min-width: 640px) {
+    .accessories-slider-item { width: 7.5rem; }
+}
+
+/* Accessory card selected state */
+.acc-card-selected {
+    border-color: #a21caf !important;
+    box-shadow: 0 0 0 2px #e879f9;
+}
 </style>
 @endpush
 
@@ -62,24 +89,76 @@
                 @endif
             </div>
 
-            <!-- ── Recommended Accessories (compact) ── -->
+            <!-- ── Recommended Accessories (horizontal slider) ── -->
             @if($ornamentRecommendations->count())
-            <div class="bg-white rounded-2xl border border-violet-100 shadow-sm p-4">
-                <div class="flex items-center gap-2 mb-3">
-                    <span class="w-5 h-5 gradient-bg rounded-lg flex items-center justify-center flex-shrink-0">
-                        <svg class="w-3 h-3 text-white" fill="currentColor" viewBox="0 0 20 20"><path d="M5 3a2 2 0 00-2 2v2a2 2 0 002 2h2a2 2 0 002-2V5a2 2 0 00-2-2H5zM5 11a2 2 0 00-2 2v2a2 2 0 002 2h2a2 2 0 002-2v-2a2 2 0 00-2-2H5zM11 5a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2h-2a2 2 0 01-2-2V5zM14 11a1 1 0 011 1v1h1a1 1 0 110 2h-1v1a1 1 0 11-2 0v-1h-1a1 1 0 110-2h1v-1a1 1 0 011-1z"/></svg>
-                    </span>
-                    <div>
-                        <h3 class="text-sm font-bold text-gray-800">Recommended Accessories</h3>
-                        <p class="text-xs text-gray-400">Complete the look</p>
+            <div class="bg-white rounded-2xl border border-violet-100 shadow-sm p-4"
+                 x-data="{
+                     peek() {
+                         const el = this.$refs.slider;
+                         if (!el || el.scrollWidth <= el.clientWidth) return;
+                         // wait 600 ms for page paint, then scroll ~1 item (6.5 rem ≈ 96px)
+                         // and return after 700 ms to hint that the row is slideable
+                         setTimeout(() => {
+                             el.scrollTo({ left: 96, behavior: 'smooth' });
+                             setTimeout(() => el.scrollTo({ left: 0, behavior: 'smooth' }), 700);
+                         }, 600);
+                     },
+                     zoom: null,
+                     zoomTimer: null,
+                     openZoom(src, name) {
+                         clearTimeout(this.zoomTimer);
+                         this.zoom = { src, name };
+                     },
+                     closeZoom() {
+                         // 150 ms debounce prevents flicker when mouse moves from item to popup
+                         this.zoomTimer = setTimeout(() => { this.zoom = null; }, 150);
+                     },
+                     keepZoom() {
+                         clearTimeout(this.zoomTimer);
+                     },
+                     isSelected(id) {
+                         return $store.accessories.selected.includes(id);
+                     },
+                     toggle(id) {
+                         $store.accessories.toggle(id);
+                     }
+                 }"
+                 x-init="peek()">
+                <div class="flex items-center justify-between gap-2 mb-3">
+                    <div class="flex items-center gap-2">
+                        <span class="w-5 h-5 gradient-bg rounded-lg flex items-center justify-center flex-shrink-0">
+                            <svg class="w-3 h-3 text-white" fill="currentColor" viewBox="0 0 20 20"><path d="M5 3a2 2 0 00-2 2v2a2 2 0 002 2h2a2 2 0 002-2V5a2 2 0 00-2-2H5zM5 11a2 2 0 00-2 2v2a2 2 0 002 2h2a2 2 0 002-2v-2a2 2 0 00-2-2H5zM11 5a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2h-2a2 2 0 01-2-2V5zM14 11a1 1 0 011 1v1h1a1 1 0 110 2h-1v1a1 1 0 11-2 0v-1h-1a1 1 0 110-2h1v-1a1 1 0 011-1z"/></svg>
+                        </span>
+                        <div>
+                            <h3 class="text-sm font-bold text-gray-800">Recommended Accessories</h3>
+                            <p class="text-xs text-gray-400">
+                                Tap to select &amp; book together
+                                <span x-show="$store.accessories.selected.length > 0"
+                                      class="ml-1 font-bold text-fuchsia-600"
+                                      x-text="'(' + $store.accessories.selected.length + ' selected)'"></span>
+                            </p>
+                        </div>
                     </div>
+                    @if($ornamentRecommendations->count() > 3)
+                    <span class="flex items-center gap-1 text-[10px] text-fuchsia-500 font-medium select-none flex-shrink-0">
+                        <svg class="w-3 h-3" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2.5"><path stroke-linecap="round" stroke-linejoin="round" d="M15 19l-7-7 7-7"/></svg>
+                        swipe
+                        <svg class="w-3 h-3" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2.5"><path stroke-linecap="round" stroke-linejoin="round" d="M9 5l7 7-7 7"/></svg>
+                    </span>
+                    @endif
                 </div>
-                <div class="grid grid-cols-3 gap-2">
-                    @foreach($ornamentRecommendations->take(6) as $ornament)
-                    <div class="group bg-gray-50 border border-violet-100 rounded-xl overflow-hidden hover:border-fuchsia-300 hover:shadow-sm transition-all"
+                <div class="accessories-slider" x-ref="slider">
+                    @foreach($ornamentRecommendations as $ornament)
+                    <div class="accessories-slider-item group bg-gray-50 border border-violet-100 rounded-xl overflow-hidden transition-all"
+                         :class="isSelected({{ $ornament->id }}) ? 'acc-card-selected' : 'hover:border-fuchsia-300 hover:shadow-sm'"
                          role="group"
                          aria-label="{{ $ornament->name }} — ₨{{ number_format($ornament->price_per_day) }} per day">
-                        <div class="aspect-square bg-gradient-to-br from-fuchsia-50 to-pink-50 overflow-hidden relative">
+                        <div class="aspect-square bg-gradient-to-br from-fuchsia-50 to-pink-50 overflow-hidden relative cursor-zoom-in"
+                             data-zoom-src="{{ $ornament->image_url }}"
+                             data-zoom-name="{{ $ornament->name }}"
+                             @mouseenter="openZoom($el.dataset.zoomSrc, $el.dataset.zoomName)"
+                             @mouseleave="closeZoom()"
+                             @click.stop="openZoom($el.dataset.zoomSrc, $el.dataset.zoomName)">
                             <img src="{{ $ornament->image_url }}"
                                  alt="{{ $ornament->name }}"
                                  class="w-full h-full object-cover transition-transform duration-300 group-hover:scale-105">
@@ -87,17 +166,74 @@
                                   aria-label="{{ \App\Models\Ornament::categoryLabel($ornament->category) }}">
                                 {{ \App\Models\Ornament::categoryLabel($ornament->category) }}
                             </span>
+                            <!-- Selected checkmark overlay -->
+                            <div x-show="isSelected({{ $ornament->id }})"
+                                 class="absolute inset-0 bg-fuchsia-600/20 flex items-center justify-center pointer-events-none">
+                                <div class="w-7 h-7 bg-fuchsia-600 rounded-full flex items-center justify-center shadow-lg">
+                                    <svg class="w-4 h-4 text-white" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="3">
+                                        <path stroke-linecap="round" stroke-linejoin="round" d="M5 13l4 4L19 7"/>
+                                    </svg>
+                                </div>
+                            </div>
                         </div>
                         <div class="p-1.5">
                             <p class="text-xs font-semibold text-gray-800 truncate leading-tight" title="{{ $ornament->name }}">{{ $ornament->name }}</p>
                             <p class="text-xs text-primary-600 font-bold mt-0.5">₨{{ number_format($ornament->price_per_day) }}<span class="text-gray-400 font-normal">/d</span></p>
                         </div>
+                        <!-- Select / Deselect toggle button -->
+                        <button type="button"
+                                @click="toggle({{ $ornament->id }})"
+                                :class="isSelected({{ $ornament->id }})
+                                    ? 'bg-fuchsia-600 text-white border-fuchsia-600'
+                                    : 'bg-white text-fuchsia-600 border-fuchsia-200 hover:bg-fuchsia-50'"
+                                class="w-full text-[10px] font-bold py-1 border-t transition-colors flex items-center justify-center gap-1 touch-manipulation"
+                                :aria-pressed="isSelected({{ $ornament->id }})"
+                                aria-label="Toggle {{ $ornament->name }}">
+                            <span x-show="!isSelected({{ $ornament->id }})">+ Add</span>
+                            <span x-show="isSelected({{ $ornament->id }})">✓ Added</span>
+                        </button>
                     </div>
                     @endforeach
                 </div>
-                @if($ornamentRecommendations->count() > 6)
-                <p class="text-xs text-gray-400 text-center mt-2">+{{ $ornamentRecommendations->count() - 6 }} more accessories available</p>
-                @endif
+
+                <!-- Zoom popup — teleported to <body> to avoid overflow/z-index clipping -->
+                <template x-teleport="body">
+                    <div x-show="zoom"
+                         x-cloak
+                         x-transition:enter="transition ease-out duration-200"
+                         x-transition:enter-start="opacity-0"
+                         x-transition:enter-end="opacity-100"
+                         x-transition:leave="transition ease-in duration-150"
+                         x-transition:leave-start="opacity-100"
+                         x-transition:leave-end="opacity-0"
+                         @click="zoom = null; clearTimeout(zoomTimer)"
+                         @keydown.escape.window="zoom = null; clearTimeout(zoomTimer)"
+                         class="fixed inset-0 z-[200] flex items-center justify-center bg-black/65 backdrop-blur-sm"
+                         style="display:none">
+                        <div class="relative"
+                             @click.stop
+                             @mouseenter="keepZoom()"
+                             @mouseleave="closeZoom()"
+                             x-transition:enter="transition ease-out duration-200"
+                             x-transition:enter-start="opacity-0 scale-90"
+                             x-transition:enter-end="opacity-100 scale-100"
+                             x-transition:leave="transition ease-in duration-150"
+                             x-transition:leave-start="opacity-100 scale-100"
+                             x-transition:leave-end="opacity-0 scale-90">
+                            <img :src="zoom?.src"
+                                 :alt="zoom?.name"
+                                 class="max-w-[82vw] max-h-[72vh] w-auto h-auto rounded-2xl shadow-2xl object-contain">
+                            <p class="mt-2 text-center text-white text-sm font-semibold drop-shadow" x-text="zoom?.name"></p>
+                            <button @click="zoom = null; clearTimeout(zoomTimer)"
+                                    aria-label="Close"
+                                    class="absolute -top-3 -right-3 w-7 h-7 bg-white rounded-full shadow-lg flex items-center justify-center text-gray-500 hover:text-gray-900 transition-colors">
+                                <svg class="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2.5">
+                                    <path stroke-linecap="round" stroke-linejoin="round" d="M6 18L18 6M6 6l12 12"/>
+                                </svg>
+                            </button>
+                        </div>
+                    </div>
+                </template>
             </div>
             @endif
             </div>{{-- end of left column wrapper --}}
@@ -193,6 +329,10 @@
                         <input type="hidden" name="dress_id" value="{{ $dress->id }}">
                         <input type="hidden" name="start_date" x-model="startDate">
                         <input type="hidden" name="end_date" x-model="endDate">
+                        <!-- Hidden inputs for selected accessories — one per selected ornament -->
+                        <template x-for="ornamentId in $store.accessories.selected" :key="ornamentId">
+                            <input type="hidden" name="ornaments[]" :value="ornamentId">
+                        </template>
 
                         <!-- Step 1: Calendar mode toggle -->
                         <div class="mb-2">
@@ -296,22 +436,40 @@
                                 उपलब्ध छ! 🎉
                             </div>
                             <div class="grid grid-cols-2 gap-2" x-show="amounts">
-                                @foreach([
-                                    ['label' => 'दिनहरू', 'key' => 'total_days', 'type' => 'num'],
-                                    ['label' => 'भाडा', 'key' => 'rental_amount', 'type' => 'price'],
-                                    ['label' => 'धरौटी', 'key' => 'deposit_amount', 'type' => 'price'],
-                                    ['label' => 'जम्मा', 'key' => 'total_amount', 'type' => 'price'],
-                                ] as $row)
                                 <div class="bg-white rounded-xl p-3 border border-emerald-100 text-center shadow-sm">
-                                    <div class="text-xs text-gray-400 font-semibold mb-1">{{ $row['label'] }}</div>
+                                    <div class="text-xs text-gray-400 font-semibold mb-1">दिनहरू</div>
+                                    <div class="font-extrabold text-gray-900 text-base leading-tight" x-text="amounts?.total_days"></div>
+                                </div>
+                                <div class="bg-white rounded-xl p-3 border border-emerald-100 text-center shadow-sm">
+                                    <div class="text-xs text-gray-400 font-semibold mb-1">ड्रेस भाडा</div>
                                     <div class="font-extrabold text-gray-900 text-base leading-tight">
-                                        @if($row['type'] === 'price')<span class="text-sm">₨</span><span x-text="formatAmount(amounts?.{{ $row['key'] }})"></span>@else<span x-text="amounts?.{{ $row['key'] }}"></span>@endif
+                                        <span class="text-sm">₨</span><span x-text="formatAmount(amounts?.dress_rental)"></span>
                                     </div>
                                 </div>
-                                @endforeach
+                                <!-- Accessories sub-total — only shown when at least one is selected -->
+                                <template x-if="$store.accessories.selected.length > 0">
+                                    <div class="bg-fuchsia-50 rounded-xl p-3 border border-fuchsia-200 text-center shadow-sm">
+                                        <div class="text-xs text-fuchsia-600 font-semibold mb-1">एक्सेसरी भाडा</div>
+                                        <div class="font-extrabold text-fuchsia-700 text-base leading-tight">
+                                            <span class="text-sm">₨</span><span x-text="formatAmount(accessoriesRental())"></span>
+                                        </div>
+                                    </div>
+                                </template>
+                                <div class="bg-white rounded-xl p-3 border border-emerald-100 text-center shadow-sm">
+                                    <div class="text-xs text-gray-400 font-semibold mb-1">धरौटी</div>
+                                    <div class="font-extrabold text-gray-900 text-base leading-tight">
+                                        <span class="text-sm">₨</span><span x-text="formatAmount(totalDeposit())"></span>
+                                    </div>
+                                </div>
+                                <div class="bg-white rounded-xl p-3 border border-emerald-100 text-center shadow-sm col-span-2">
+                                    <div class="text-xs text-gray-400 font-semibold mb-1">जम्मा</div>
+                                    <div class="font-extrabold text-gray-900 text-lg leading-tight">
+                                        <span class="text-sm">₨</span><span x-text="formatAmount(grandTotal())"></span>
+                                    </div>
+                                </div>
                             </div>
                             <div class="mt-3 gradient-bg text-white rounded-xl px-4 py-3 text-center text-sm font-extrabold shadow-sm">
-                                अग्रिम (५०%): ₨<span x-text="formatAmount(amounts?.advance_amount)"></span>
+                                अग्रिम (५०%): ₨<span x-text="formatAmount(advanceAmount())"></span>
                             </div>
                         </div>
 
@@ -389,6 +547,31 @@
 <script>
 const bookedRanges = @json($bookedRanges);
 
+// Ornament prices available client-side for instant total recalculation
+const ornamentPrices = @json(
+    $ornamentRecommendations->mapWithKeys(fn($o) => [
+        $o->id => [
+            'price_per_day'  => (float) $o->price_per_day,
+            'deposit_amount' => (float) $o->deposit_amount,
+        ]
+    ])
+);
+
+// Alpine.js global store — shared between the accessories slider and the booking form
+document.addEventListener('alpine:init', () => {
+    Alpine.store('accessories', {
+        selected: [],
+        toggle(id) {
+            const idx = this.selected.indexOf(id);
+            if (idx === -1) {
+                this.selected.push(id);
+            } else {
+                this.selected.splice(idx, 1);
+            }
+        },
+    });
+});
+
 function bookingForm() {
     return {
         startDate: '',
@@ -399,13 +582,16 @@ function bookingForm() {
         calendarOpen: false,
         checking: false,
         available: null,
+        // amounts holds the base dress-only breakdown returned by the server
         amounts: null,
+
         // Converts ASCII digits in a BS date string (e.g. "2082-01-15") to Devanagari numerals
         formatBsDate(bsStr) {
             if (!bsStr) return '';
             const digits = ['०','१','२','३','४','५','६','७','८','९'];
             return bsStr.replace(/[0-9]/g, d => digits[d]);
         },
+
         async checkAvailability() {
             if (!this.startDate || !this.endDate) return;
             this.checking = true;
@@ -421,16 +607,51 @@ function bookingForm() {
                 });
                 const data = await resp.json();
                 this.available = data.available;
-                this.amounts = data.amounts;
+                // Store the base dress amounts; ornament costs are added client-side below
+                this.amounts = data.amounts
+                    ? { ...data.amounts, dress_rental: data.amounts.rental_amount }
+                    : null;
             } catch (e) {
                 this.available = null;
             }
             this.checking = false;
         },
+
+        // Total ornament rental cost for the selected accessories × total days
+        accessoriesRental() {
+            if (!this.amounts) return 0;
+            return this.$store.accessories.selected.reduce((sum, id) => {
+                const p = ornamentPrices[id];
+                return sum + (p ? p.price_per_day * this.amounts.total_days : 0);
+            }, 0);
+        },
+
+        // Total deposit = dress deposit + each selected accessory's deposit
+        totalDeposit() {
+            if (!this.amounts) return 0;
+            const accDeposit = this.$store.accessories.selected.reduce((sum, id) => {
+                const p = ornamentPrices[id];
+                return sum + (p ? p.deposit_amount : 0);
+            }, 0);
+            return (this.amounts.deposit_amount || 0) + accDeposit;
+        },
+
+        // Grand total = dress rental + accessory rental + all deposits
+        grandTotal() {
+            if (!this.amounts) return 0;
+            return (this.amounts.dress_rental || 0) + this.accessoriesRental() + this.totalDeposit();
+        },
+
+        // Advance payment = 50 % of grand total (mirrors server-side setting)
+        advanceAmount() {
+            return Math.round(this.grandTotal() * 0.5 * 100) / 100;
+        },
+
         formatAmount(val) {
-            if (!val) return '0';
+            if (val == null) return '0';
             return parseFloat(val).toLocaleString('en-NP');
         },
+
         submitBooking(form) {
             if (this.available && this.startDate && this.endDate) {
                 form.submit();
