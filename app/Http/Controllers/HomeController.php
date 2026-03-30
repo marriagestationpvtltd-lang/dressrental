@@ -17,7 +17,9 @@ class HomeController extends Controller
             ->get();
 
         $categories = DressCategory::withCount(['dresses' => fn ($q) => $q->available()])
+            ->with(['activeSubcategories' => fn ($q) => $q->withCount(['dresses' => fn ($q2) => $q2->available()])])
             ->where('is_active', true)
+            ->topLevel()
             ->orderBy('sort_order')
             ->get();
 
