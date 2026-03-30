@@ -30,9 +30,8 @@
 {{-- Hidden input that actually carries category_id in the form submission --}}
 <input type="hidden" name="category_id" id="category-id-input">
 
-<script>
-(function () {
-    const data = @json($categories->map(fn ($c) => [
+@php
+    $categorySelectData = $categories->map(fn ($c) => [
         'id'   => $c->id,
         'name' => $c->name,
         'icon' => $c->icon,
@@ -41,7 +40,11 @@
             'name' => $s->name,
             'icon' => $s->icon,
         ])->values()->all(),
-    ])->values()->all());
+    ])->values()->all();
+@endphp
+<script>
+(function () {
+    const data = @json($categorySelectData);
 
     const mainSel = document.getElementById('main-category-select');
     const subWrap = document.getElementById('subcategory-wrapper');
