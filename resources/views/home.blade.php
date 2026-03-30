@@ -94,7 +94,7 @@
         @endphp
         <div class="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-6 gap-4">
             @foreach($categories as $i => $cat)
-            <a href="{{ route('dresses.index', ['category' => $cat->slug]) }}"
+            <a href="{{ route('categories.show', $cat->slug) }}"
                class="bg-white rounded-2xl p-5 text-center shadow-card hover:shadow-card-hover transition-all border border-violet-100 hover:border-primary-300 card-hover group">
                 <div class="w-14 h-14 {{ $catColors[$loop->index % count($catColors)] }} rounded-2xl flex items-center justify-center mx-auto mb-3 text-2xl group-hover:scale-110 transition-transform shadow-sm">
                     {{ $cat->icon ?: '👗' }}
@@ -118,7 +118,7 @@
                 <h2 class="text-2xl md:text-3xl font-extrabold text-gray-900">Featured Dresses</h2>
                 <p class="text-gray-500 mt-1.5 text-sm">Premium selections curated just for you</p>
             </div>
-            <a href="{{ route('dresses.index') }}" class="hidden md:inline-flex items-center gap-1.5 text-amber-600 font-semibold text-sm hover:text-amber-700 border border-amber-200 bg-amber-50 rounded-xl px-4 py-2 shadow-sm hover:shadow transition-all">
+            <a href="{{ route('dresses.featured') }}" class="hidden md:inline-flex items-center gap-1.5 text-amber-600 font-semibold text-sm hover:text-amber-700 border border-amber-200 bg-amber-50 rounded-xl px-4 py-2 shadow-sm hover:shadow transition-all">
                 View All <svg class="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17 8l4 4m0 0l-4 4m4-4H3"/></svg>
             </a>
         </div>
@@ -174,6 +174,9 @@
                 <h2 class="text-2xl md:text-3xl font-extrabold text-gray-900">New Arrivals</h2>
                 <p class="text-gray-500 mt-1.5 text-sm">Fresh additions to our exclusive collection</p>
             </div>
+            <a href="{{ route('dresses.new-arrivals') }}" class="hidden md:inline-flex items-center gap-1.5 text-amber-700 font-semibold text-sm hover:text-amber-800 border border-amber-300 bg-amber-100 rounded-xl px-4 py-2 shadow-sm hover:shadow transition-all">
+                View All <svg class="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17 8l4 4m0 0l-4 4m4-4H3"/></svg>
+            </a>
         </div>
         <div class="grid grid-cols-2 md:grid-cols-4 gap-5 md:gap-6">
             @foreach($newArrivals as $dress)

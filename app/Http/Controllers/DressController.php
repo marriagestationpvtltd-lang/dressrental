@@ -49,6 +49,40 @@ class DressController extends Controller
         return view('dresses.index', compact('dresses', 'categories', 'sizes'));
     }
 
+    public function featured(Request $request)
+    {
+        $query = Dress::with(['images', 'category'])->available()->featured();
+
+        $sort = $request->get('sort', 'latest');
+        match ($sort) {
+            'price_asc'  => $query->orderBy('price_per_day'),
+            'price_desc' => $query->orderByDesc('price_per_day'),
+            'popular'    => $query->orderByDesc('views'),
+            default      => $query->latest(),
+        };
+
+        $dresses = $query->paginate(12)->withQueryString();
+
+        return view('dresses.featured', compact('dresses'));
+    }
+
+    public function newArrivals(Request $request)
+    {
+        $query = Dress::with(['images', 'category'])->available();
+
+        $sort = $request->get('sort', 'latest');
+        match ($sort) {
+            'price_asc'  => $query->orderBy('price_per_day'),
+            'price_desc' => $query->orderByDesc('price_per_day'),
+            'popular'    => $query->orderByDesc('views'),
+            default      => $query->latest(),
+        };
+
+        $dresses = $query->paginate(12)->withQueryString();
+
+        return view('dresses.new-arrivals', compact('dresses'));
+    }
+
     public function show(Dress $dress)
     {
         if ($dress->status === 'unavailable') {

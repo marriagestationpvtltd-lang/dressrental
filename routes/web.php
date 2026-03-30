@@ -3,6 +3,7 @@
 use App\Http\Controllers\Admin;
 use App\Http\Controllers\AuthController;
 use App\Http\Controllers\BookingController;
+use App\Http\Controllers\CategoryController;
 use App\Http\Controllers\DressController;
 use App\Http\Controllers\HomeController;
 use App\Http\Controllers\PaymentController;
@@ -12,7 +13,10 @@ use Illuminate\Support\Facades\Route;
 // ─── Public ──────────────────────────────────────────────────────────────────
 Route::get('/', [HomeController::class, 'index'])->name('home');
 Route::get('/dresses', [DressController::class, 'index'])->name('dresses.index');
+Route::get('/dresses/featured', [DressController::class, 'featured'])->name('dresses.featured');
+Route::get('/dresses/new-arrivals', [DressController::class, 'newArrivals'])->name('dresses.new-arrivals');
 Route::get('/dresses/{dress:slug}', [DressController::class, 'show'])->name('dresses.show');
+Route::get('/categories/{category:slug}', [CategoryController::class, 'show'])->name('categories.show');
 
 // Availability check (open for AJAX)
 Route::post('/dresses/{dress}/availability', [BookingController::class, 'checkAvailability'])
