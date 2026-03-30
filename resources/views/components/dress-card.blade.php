@@ -1,3 +1,4 @@
+<div class="bg-white rounded-2xl overflow-hidden shadow-sm border border-gray-100 group-hover:border-purple-400 group-hover:shadow-xl card-hover group transition-all duration-300">
 <div class="bg-white rounded-2xl overflow-hidden shadow-card border border-violet-100 hover:border-primary-300 card-hover group transition-all">
     <a href="{{ route('dresses.show', $dress) }}" class="block">
         <!-- Image -->
@@ -5,7 +6,7 @@
             @if($dress->primaryImage())
                 <img src="{{ $dress->primaryImage()->url }}"
                      alt="{{ $dress->name }}"
-                     class="w-full h-full object-cover group-hover:scale-105 transition-transform duration-300"
+                     class="w-full h-full object-cover group-hover:scale-110 transition-transform duration-300 ease-in-out"
                      loading="lazy">
             @else
                 <div class="w-full h-full flex items-center justify-center bg-gradient-to-br from-violet-100 to-pink-100">
