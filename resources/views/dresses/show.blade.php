@@ -86,15 +86,29 @@
             <!-- ── Recommended Accessories (horizontal slider) ── -->
             @if($ornamentRecommendations->count())
             <div class="bg-white rounded-2xl border border-violet-100 shadow-sm p-4"
-                     x-data="{
+                 x-data="{
                      peek() {
                          const el = this.$refs.slider;
                          if (!el || el.scrollWidth <= el.clientWidth) return;
-                         // scroll ~1 item width (6.5 rem ≈ 96px) to hint slideable content
+                         // wait 600 ms for page paint, then scroll ~1 item (6.5 rem ≈ 96px)
+                         // and return after 700 ms to hint that the row is slideable
                          setTimeout(() => {
                              el.scrollTo({ left: 96, behavior: 'smooth' });
                              setTimeout(() => el.scrollTo({ left: 0, behavior: 'smooth' }), 700);
                          }, 600);
+                     },
+                     zoom: null,
+                     zoomTimer: null,
+                     openZoom(src, name) {
+                         clearTimeout(this.zoomTimer);
+                         this.zoom = { src, name };
+                     },
+                     closeZoom() {
+                         // 150 ms debounce prevents flicker when mouse moves from item to popup
+                         this.zoomTimer = setTimeout(() => { this.zoom = null; }, 150);
+                     },
+                     keepZoom() {
+                         clearTimeout(this.zoomTimer);
                      }
                  }"
                  x-init="peek()">
@@ -121,7 +135,12 @@
                     <div class="accessories-slider-item group bg-gray-50 border border-violet-100 rounded-xl overflow-hidden hover:border-fuchsia-300 hover:shadow-sm transition-all"
                          role="group"
                          aria-label="{{ $ornament->name }} — ₨{{ number_format($ornament->price_per_day) }} per day">
-                        <div class="aspect-square bg-gradient-to-br from-fuchsia-50 to-pink-50 overflow-hidden relative">
+                        <div class="aspect-square bg-gradient-to-br from-fuchsia-50 to-pink-50 overflow-hidden relative cursor-zoom-in"
+                             data-zoom-src="{{ $ornament->image_url }}"
+                             data-zoom-name="{{ $ornament->name }}"
+                             @mouseenter="openZoom($el.dataset.zoomSrc, $el.dataset.zoomName)"
+                             @mouseleave="closeZoom()"
+                             @click.stop="openZoom($el.dataset.zoomSrc, $el.dataset.zoomName)">
                             <img src="{{ $ornament->image_url }}"
                                  alt="{{ $ornament->name }}"
                                  class="w-full h-full object-cover transition-transform duration-300 group-hover:scale-105">
@@ -137,6 +156,45 @@
                     </div>
                     @endforeach
                 </div>
+
+                <!-- Zoom popup — teleported to <body> to avoid overflow/z-index clipping -->
+                <template x-teleport="body">
+                    <div x-show="zoom"
+                         x-cloak
+                         x-transition:enter="transition ease-out duration-200"
+                         x-transition:enter-start="opacity-0"
+                         x-transition:enter-end="opacity-100"
+                         x-transition:leave="transition ease-in duration-150"
+                         x-transition:leave-start="opacity-100"
+                         x-transition:leave-end="opacity-0"
+                         @click="zoom = null; clearTimeout(zoomTimer)"
+                         @keydown.escape.window="zoom = null; clearTimeout(zoomTimer)"
+                         class="fixed inset-0 z-[200] flex items-center justify-center bg-black/65 backdrop-blur-sm"
+                         style="display:none">
+                        <div class="relative"
+                             @click.stop
+                             @mouseenter="keepZoom()"
+                             @mouseleave="closeZoom()"
+                             x-transition:enter="transition ease-out duration-200"
+                             x-transition:enter-start="opacity-0 scale-90"
+                             x-transition:enter-end="opacity-100 scale-100"
+                             x-transition:leave="transition ease-in duration-150"
+                             x-transition:leave-start="opacity-100 scale-100"
+                             x-transition:leave-end="opacity-0 scale-90">
+                            <img :src="zoom?.src"
+                                 :alt="zoom?.name"
+                                 class="max-w-[82vw] max-h-[72vh] w-auto h-auto rounded-2xl shadow-2xl object-contain">
+                            <p class="mt-2 text-center text-white text-sm font-semibold drop-shadow" x-text="zoom?.name"></p>
+                            <button @click="zoom = null; clearTimeout(zoomTimer)"
+                                    aria-label="Close"
+                                    class="absolute -top-3 -right-3 w-7 h-7 bg-white rounded-full shadow-lg flex items-center justify-center text-gray-500 hover:text-gray-900 transition-colors">
+                                <svg class="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2.5">
+                                    <path stroke-linecap="round" stroke-linejoin="round" d="M6 18L18 6M6 6l12 12"/>
+                                </svg>
+                            </button>
+                        </div>
+                    </div>
+                </template>
             </div>
             @endif
             </div>{{-- end of left column wrapper --}}
