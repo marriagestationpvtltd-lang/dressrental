@@ -1,6 +1,6 @@
 -- ============================================================
 -- Dress Rental — complete database schema
--- Generated from Laravel migrations (as of 2026-03-27)
+-- Generated from Laravel migrations (as of 2026-03-30)
 --
 -- HOW TO USE (manual import via phpMyAdmin):
 --   1. Log in to cPanel → phpMyAdmin
@@ -29,15 +29,25 @@ CREATE TABLE IF NOT EXISTS `migrations` (
 -- Record every migration so "php artisan migrate" knows they
 -- have already been applied and will not try to re-run them.
 INSERT IGNORE INTO `migrations` (`migration`, `batch`) VALUES
-  ('0001_01_01_000000_create_users_table',             1),
-  ('0001_01_01_000001_create_cache_table',             1),
-  ('0001_01_01_000002_create_jobs_table',              1),
-  ('2026_03_27_033936_add_fields_to_users_table',      1),
-  ('2026_03_27_033936_create_bookings_table',          1),
-  ('2026_03_27_033936_create_dress_categories_table',  1),
-  ('2026_03_27_033936_create_dress_images_table',      1),
-  ('2026_03_27_033936_create_dresses_table',           1),
-  ('2026_03_27_033937_create_payments_table',          1);
+  ('0001_01_01_000000_create_users_table',                                      1),
+  ('0001_01_01_000001_create_cache_table',                                      1),
+  ('0001_01_01_000002_create_jobs_table',                                       1),
+  ('2026_03_27_033936_add_fields_to_users_table',                               1),
+  ('2026_03_27_033936_create_dress_categories_table',                           1),
+  ('2026_03_27_033937_create_dresses_table',                                    1),
+  ('2026_03_27_033938_create_bookings_table',                                   1),
+  ('2026_03_27_033938_create_dress_images_table',                               1),
+  ('2026_03_27_033939_create_payments_table',                                   1),
+  ('2026_03_30_000001_create_settings_table',                                   1),
+  ('2026_03_30_000002_add_gemini_api_key_setting',                              1),
+  ('2026_03_30_000003_add_missing_settings',                                    1),
+  ('2026_03_30_000004_add_google_oauth',                                        1),
+  ('2026_03_30_000004_create_pages_table',                                      1),
+  ('2026_03_30_100000_add_parent_id_to_dress_categories_table',                 1),
+  ('2026_03_30_100000_create_ornaments_table',                                  1),
+  ('2026_03_30_100001_create_dress_ornament_table',                             1),
+  ('2026_03_30_100002_create_category_ornament_recommendations_table',          1),
+  ('2026_03_30_200000_fix_dress_category_parent_id_mismatches',                 1);
 
 -- ------------------------------------------------------------
 -- users
@@ -46,6 +56,7 @@ CREATE TABLE IF NOT EXISTS `users` (
   `id`                BIGINT UNSIGNED NOT NULL AUTO_INCREMENT,
   `name`              VARCHAR(255)    NOT NULL,
   `email`             VARCHAR(255)    NOT NULL,
+  `google_id`         VARCHAR(255)    DEFAULT NULL,
   `phone`             VARCHAR(20)     DEFAULT NULL,
   `address`           TEXT            DEFAULT NULL,
   `role`              ENUM('user','admin') NOT NULL DEFAULT 'user',
@@ -56,7 +67,8 @@ CREATE TABLE IF NOT EXISTS `users` (
   `created_at`        TIMESTAMP NULL  DEFAULT NULL,
   `updated_at`        TIMESTAMP NULL  DEFAULT NULL,
   PRIMARY KEY (`id`),
-  UNIQUE KEY `users_email_unique` (`email`)
+  UNIQUE KEY `users_email_unique` (`email`),
+  UNIQUE KEY `users_google_id_unique` (`google_id`)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
 
 -- ------------------------------------------------------------
@@ -164,10 +176,14 @@ CREATE TABLE IF NOT EXISTS `dress_categories` (
   `icon`        VARCHAR(255)    DEFAULT NULL,
   `is_active`   TINYINT(1)      NOT NULL DEFAULT 1,
   `sort_order`  INT             NOT NULL DEFAULT 0,
+  `parent_id`   BIGINT UNSIGNED DEFAULT NULL,
   `created_at`  TIMESTAMP NULL  DEFAULT NULL,
   `updated_at`  TIMESTAMP NULL  DEFAULT NULL,
   PRIMARY KEY (`id`),
-  UNIQUE KEY `dress_categories_slug_unique` (`slug`)
+  UNIQUE KEY `dress_categories_slug_unique` (`slug`),
+  KEY `dress_categories_parent_id_foreign` (`parent_id`),
+  CONSTRAINT `dress_categories_parent_id_foreign`
+    FOREIGN KEY (`parent_id`) REFERENCES `dress_categories` (`id`) ON DELETE SET NULL
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
 
 -- ------------------------------------------------------------
@@ -270,6 +286,87 @@ CREATE TABLE IF NOT EXISTS `payments` (
     FOREIGN KEY (`booking_id`) REFERENCES `bookings` (`id`) ON DELETE CASCADE,
   CONSTRAINT `payments_user_id_foreign`
     FOREIGN KEY (`user_id`)    REFERENCES `users`    (`id`) ON DELETE CASCADE
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
+
+-- ------------------------------------------------------------
+-- settings
+-- ------------------------------------------------------------
+CREATE TABLE IF NOT EXISTS `settings` (
+  `id`          BIGINT UNSIGNED NOT NULL AUTO_INCREMENT,
+  `key`         VARCHAR(255)    NOT NULL,
+  `value`       TEXT            DEFAULT NULL,
+  `type`        VARCHAR(255)    NOT NULL DEFAULT 'text',
+  `group`       VARCHAR(255)    NOT NULL DEFAULT 'site',
+  `label`       VARCHAR(255)    NOT NULL,
+  `description` VARCHAR(255)    DEFAULT NULL,
+  `created_at`  TIMESTAMP NULL  DEFAULT NULL,
+  `updated_at`  TIMESTAMP NULL  DEFAULT NULL,
+  PRIMARY KEY (`id`),
+  UNIQUE KEY `settings_key_unique` (`key`)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
+
+-- ------------------------------------------------------------
+-- pages
+-- ------------------------------------------------------------
+CREATE TABLE IF NOT EXISTS `pages` (
+  `id`          BIGINT UNSIGNED   NOT NULL AUTO_INCREMENT,
+  `title`       VARCHAR(255)      NOT NULL,
+  `slug`        VARCHAR(255)      NOT NULL,
+  `content`     LONGTEXT          NOT NULL,
+  `status`      ENUM('active','inactive') NOT NULL DEFAULT 'active',
+  `sort_order`  SMALLINT UNSIGNED NOT NULL DEFAULT 0,
+  `created_at`  TIMESTAMP NULL    DEFAULT NULL,
+  `updated_at`  TIMESTAMP NULL    DEFAULT NULL,
+  PRIMARY KEY (`id`),
+  UNIQUE KEY `pages_slug_unique` (`slug`)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
+
+-- ------------------------------------------------------------
+-- ornaments
+-- ------------------------------------------------------------
+CREATE TABLE IF NOT EXISTS `ornaments` (
+  `id`             BIGINT UNSIGNED NOT NULL AUTO_INCREMENT,
+  `name`           VARCHAR(255)    NOT NULL,
+  `slug`           VARCHAR(255)    NOT NULL,
+  `description`    TEXT            DEFAULT NULL,
+  `price_per_day`  DECIMAL(10,2)   NOT NULL DEFAULT 0.00,
+  `deposit_amount` DECIMAL(10,2)   NOT NULL DEFAULT 0.00,
+  `category`       ENUM('jewelry','hair_accessories','footwear','handbag','other') NOT NULL DEFAULT 'other',
+  `image_path`     VARCHAR(255)    DEFAULT NULL,
+  `status`         ENUM('available','unavailable') NOT NULL DEFAULT 'available',
+  `created_at`     TIMESTAMP NULL  DEFAULT NULL,
+  `updated_at`     TIMESTAMP NULL  DEFAULT NULL,
+  PRIMARY KEY (`id`),
+  UNIQUE KEY `ornaments_slug_unique` (`slug`)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
+
+-- ------------------------------------------------------------
+-- dress_ornament  (pivot)
+-- ------------------------------------------------------------
+CREATE TABLE IF NOT EXISTS `dress_ornament` (
+  `dress_id`    BIGINT UNSIGNED NOT NULL,
+  `ornament_id` BIGINT UNSIGNED NOT NULL,
+  PRIMARY KEY (`dress_id`,`ornament_id`),
+  KEY `dress_ornament_ornament_id_foreign` (`ornament_id`),
+  CONSTRAINT `dress_ornament_dress_id_foreign`
+    FOREIGN KEY (`dress_id`)    REFERENCES `dresses`   (`id`) ON DELETE CASCADE,
+  CONSTRAINT `dress_ornament_ornament_id_foreign`
+    FOREIGN KEY (`ornament_id`) REFERENCES `ornaments` (`id`) ON DELETE CASCADE
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
+
+-- ------------------------------------------------------------
+-- category_ornament_recommendations  (pivot)
+-- ------------------------------------------------------------
+CREATE TABLE IF NOT EXISTS `category_ornament_recommendations` (
+  `dress_category_id` BIGINT UNSIGNED   NOT NULL,
+  `ornament_id`       BIGINT UNSIGNED   NOT NULL,
+  `sort_order`        SMALLINT UNSIGNED NOT NULL DEFAULT 0,
+  PRIMARY KEY (`dress_category_id`,`ornament_id`),
+  KEY `category_ornament_recommendations_ornament_id_foreign` (`ornament_id`),
+  CONSTRAINT `category_ornament_recommendations_dress_category_id_foreign`
+    FOREIGN KEY (`dress_category_id`) REFERENCES `dress_categories` (`id`) ON DELETE CASCADE,
+  CONSTRAINT `category_ornament_recommendations_ornament_id_foreign`
+    FOREIGN KEY (`ornament_id`)       REFERENCES `ornaments`        (`id`) ON DELETE CASCADE
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
 
 SET FOREIGN_KEY_CHECKS = 1;
