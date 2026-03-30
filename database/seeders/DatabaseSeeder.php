@@ -19,6 +19,7 @@ class DatabaseSeeder extends Seeder
         $this->call([
             ProductionSeeder::class,
             SampleDataSeeder::class,
+            PageSeeder::class,
         ]);
     }
 }

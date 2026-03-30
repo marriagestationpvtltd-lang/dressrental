@@ -248,6 +248,8 @@
                         @auth
                         <li><a href="{{ route('bookings.index') }}" class="text-gray-400 hover:text-white text-sm transition-colors flex items-center gap-1.5"><span class="text-primary-400">›</span> My Bookings</a></li>
                         @endauth
+                        <li><a href="{{ route('pages.show', 'privacy-policy') }}" class="text-gray-400 hover:text-white text-sm transition-colors flex items-center gap-1.5"><span class="text-primary-400">›</span> Privacy Policy</a></li>
+                        <li><a href="{{ route('pages.show', 'terms-and-conditions') }}" class="text-gray-400 hover:text-white text-sm transition-colors flex items-center gap-1.5"><span class="text-primary-400">›</span> Terms &amp; Conditions</a></li>
                     </ul>
                 </div>
 
