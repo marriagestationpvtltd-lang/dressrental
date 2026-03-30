@@ -38,6 +38,7 @@
                 <th class="text-left px-5 py-3 text-xs font-semibold text-gray-500 uppercase">Amount</th>
                 <th class="text-left px-5 py-3 text-xs font-semibold text-gray-500 uppercase">Type</th>
                 <th class="text-left px-5 py-3 text-xs font-semibold text-gray-500 uppercase">Status</th>
+                <th class="text-left px-5 py-3 text-xs font-semibold text-gray-500 uppercase">Actions</th>
             </tr>
         </thead>
         <tbody class="divide-y divide-gray-50">
@@ -56,9 +57,19 @@
                         {{ $payment->status }}
                     </span>
                 </td>
+                <td class="px-5 py-3">
+                    @if($payment->status === 'pending' && $payment->payment_method === 'cash')
+                    <form method="POST" action="{{ route('admin.payments.approve', $payment) }}" onsubmit="return confirm('Approve this offline payment?')">
+                        @csrf
+                        <button type="submit" class="px-3 py-1 bg-green-500 hover:bg-green-600 text-white text-xs font-semibold rounded-lg">
+                            Approve
+                        </button>
+                    </form>
+                    @endif
+                </td>
             </tr>
             @empty
-            <tr><td colspan="7" class="text-center py-12 text-gray-400">No payments found</td></tr>
+            <tr><td colspan="8" class="text-center py-12 text-gray-400">No payments found</td></tr>
             @endforelse
         </tbody>
     </table>

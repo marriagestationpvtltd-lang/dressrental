@@ -55,6 +55,8 @@ Route::middleware('auth')->group(function () {
     Route::get('/payment/esewa/verify/{payment}', [PaymentController::class, 'esewaVerify'])->name('payment.esewa.verify');
     Route::post('/payment/{booking}/khalti', [PaymentController::class, 'khaltiInit'])->name('payment.khalti.init');
     Route::get('/payment/khalti/verify', [PaymentController::class, 'khaltiVerify'])->name('payment.khalti.verify');
+    Route::post('/payment/{booking}/offline', [PaymentController::class, 'offlineInit'])->name('payment.offline.init');
+    Route::get('/payment/{booking}/offline-confirm', [PaymentController::class, 'offlineConfirm'])->name('payment.offline.confirm');
     Route::get('/payment/success', [PaymentController::class, 'success'])->name('payment.success');
     Route::get('/payment/failure', [PaymentController::class, 'failure'])->name('payment.failure');
 });
@@ -74,6 +76,7 @@ Route::middleware(['auth', 'admin'])->prefix('admin')->name('admin.')->group(fun
     // Payments
     Route::resource('payments', Admin\PaymentController::class)->only(['index', 'show']);
     Route::post('/payments/{payment}/refund', [Admin\PaymentController::class, 'refund'])->name('payments.refund');
+    Route::post('/payments/{payment}/approve', [Admin\PaymentController::class, 'approve'])->name('payments.approve');
 
     // Users
     Route::resource('users', Admin\UserController::class)->only(['index', 'show']);
