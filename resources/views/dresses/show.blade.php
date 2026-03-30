@@ -23,7 +23,7 @@
     <div class="grid grid-cols-1 lg:grid-cols-2 gap-10">
 
         <!-- Images Gallery -->
-        <div x-data="{ activeImg: '{{ $dress->primaryImage() ? asset('storage/' . $dress->primaryImage()->image_path) : '' }}' }">
+        <div x-data="{ activeImg: '{{ $dress->primaryImage() ? $dress->primaryImage()->url : '' }}' }">
             <div class="aspect-square rounded-3xl overflow-hidden bg-gray-100 mb-4">
                 @if($dress->primaryImage())
                     <img :src="activeImg" alt="{{ $dress->name }}" class="w-full h-full object-cover" id="main-img">
@@ -36,10 +36,10 @@
             @if($dress->images->count() > 1)
             <div class="grid grid-cols-5 gap-2">
                 @foreach($dress->images as $img)
-                    <button @click="activeImg = '{{ asset('storage/' . $img->image_path) }}'"
-                            :class="activeImg === '{{ asset('storage/' . $img->image_path) }}' ? 'thumb-active' : ''"
+                    <button @click="activeImg = '{{ $img->url }}'"
+                            :class="activeImg === '{{ $img->url }}' ? 'thumb-active' : ''"
                             class="aspect-square rounded-xl overflow-hidden border-2 border-transparent hover:border-primary-400 transition-colors">
-                        <img src="{{ asset('storage/' . $img->image_path) }}" alt="" class="w-full h-full object-cover">
+                        <img src="{{ $img->url }}" alt="" class="w-full h-full object-cover">
                     </button>
                 @endforeach
             </div>

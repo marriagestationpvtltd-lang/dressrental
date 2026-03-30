@@ -12,7 +12,7 @@
             <div class="flex items-start gap-4 p-4">
                 <div class="w-20 h-20 rounded-xl overflow-hidden bg-gray-100 shrink-0">
                     @if($booking->dress && $booking->dress->primaryImage())
-                        <img src="{{ asset('storage/' . $booking->dress->primaryImage()->image_path) }}" class="w-full h-full object-cover" alt="">
+                        <img src="{{ $booking->dress->primaryImage()->url }}" class="w-full h-full object-cover" alt="">
                     @else
                         <div class="w-full h-full flex items-center justify-center text-3xl">👗</div>
                     @endif

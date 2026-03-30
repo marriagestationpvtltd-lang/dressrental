@@ -2,7 +2,7 @@
     <a href="{{ route('dresses.show', $dress) }}" class="block">
         <div class="relative overflow-hidden aspect-[3/4] bg-gray-100">
             @if($dress->primaryImage())
-                <img src="{{ asset('storage/' . $dress->primaryImage()->image_path) }}"
+                <img src="{{ $dress->primaryImage()->url }}"
                      alt="{{ $dress->name }}"
                      class="w-full h-full object-cover group-hover:scale-105 transition-transform duration-300"
                      loading="lazy">
