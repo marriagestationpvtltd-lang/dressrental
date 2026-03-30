@@ -13,7 +13,7 @@ class HomeController extends Controller
             ->available()
             ->featured()
             ->latest()
-            ->take(8)
+            ->take(12)
             ->get();
 
         $categories = DressCategory::withCount(['dresses' => fn ($q) => $q->available()])
