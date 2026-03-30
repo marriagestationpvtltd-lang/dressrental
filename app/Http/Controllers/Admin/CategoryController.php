@@ -6,6 +6,7 @@ use App\Http\Controllers\Controller;
 use App\Models\DressCategory;
 use Illuminate\Http\Request;
 use Illuminate\Support\Str;
+use Illuminate\Validation\Rule;
 
 class CategoryController extends Controller
 {
@@ -38,7 +39,7 @@ class CategoryController extends Controller
             'icon'        => 'nullable|string|max:100',
             'sort_order'  => 'nullable|integer',
             'is_active'   => 'boolean',
-            'parent_id'   => 'nullable|exists:dress_categories,id',
+            'parent_id'   => ['nullable', Rule::exists('dress_categories', 'id')->whereNull('parent_id')],
         ]);
 
         $data['slug']      = Str::slug($data['name']);
@@ -72,7 +73,7 @@ class CategoryController extends Controller
             'icon'        => 'nullable|string|max:100',
             'sort_order'  => 'nullable|integer',
             'is_active'   => 'boolean',
-            'parent_id'   => 'nullable|exists:dress_categories,id',
+            'parent_id'   => ['nullable', Rule::exists('dress_categories', 'id')->whereNull('parent_id')],
         ]);
 
         $data['slug']      = Str::slug($data['name']);
