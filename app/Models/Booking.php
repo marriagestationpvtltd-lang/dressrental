@@ -35,6 +35,8 @@ class Booking extends Model
     protected function casts(): array
     {
         return [
+            'user_id'         => 'integer',
+            'dress_id'        => 'integer',
             'start_date'      => 'date',
             'end_date'        => 'date',
             'rental_amount'   => 'decimal:2',
