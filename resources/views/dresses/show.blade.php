@@ -24,9 +24,9 @@
 
         <!-- Images Gallery -->
         <div x-data="{ activeImg: '{{ $dress->primaryImage() ? $dress->primaryImage()->url : '' }}' }">
-            <div class="aspect-square rounded-3xl overflow-hidden bg-gray-100 mb-4">
+            <div class="aspect-square rounded-3xl overflow-hidden bg-gray-100 mb-4 border-2 border-transparent hover:border-purple-400 hover:shadow-xl transition-all duration-300 group">
                 @if($dress->primaryImage())
-                    <img :src="activeImg" alt="{{ $dress->name }}" class="w-full h-full object-cover" id="main-img">
+                    <img :src="activeImg" alt="{{ $dress->name }}" class="w-full h-full object-cover group-hover:scale-110 transition-transform duration-300 ease-in-out" id="main-img">
                 @else
                     <div class="w-full h-full flex items-center justify-center bg-gradient-to-br from-purple-100 to-pink-100">
                         <svg class="w-24 h-24 text-purple-300" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="1" d="M12 3l9 7-9 7-9-7 9-7z"/></svg>
@@ -38,8 +38,8 @@
                 @foreach($dress->images as $img)
                     <button @click="activeImg = '{{ $img->url }}'"
                             :class="activeImg === '{{ $img->url }}' ? 'thumb-active' : ''"
-                            class="aspect-square rounded-xl overflow-hidden border-2 border-transparent hover:border-primary-400 transition-colors">
-                        <img src="{{ $img->url }}" alt="" class="w-full h-full object-cover">
+                            class="aspect-square rounded-xl overflow-hidden border-2 border-transparent hover:border-purple-400 hover:shadow-md transition-all duration-300">
+                        <img src="{{ $img->url }}" alt="" class="w-full h-full object-cover hover:scale-110 transition-transform duration-300 ease-in-out">
                     </button>
                 @endforeach
             </div>
