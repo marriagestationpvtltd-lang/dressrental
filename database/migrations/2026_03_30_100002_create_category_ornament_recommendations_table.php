@@ -8,6 +8,10 @@ return new class extends Migration
 {
     public function up(): void
     {
+        if (Schema::hasTable('category_ornament_recommendations')) {
+            return;
+        }
+
         Schema::create('category_ornament_recommendations', function (Blueprint $table) {
             $table->foreignId('dress_category_id')
                 ->constrained('dress_categories')

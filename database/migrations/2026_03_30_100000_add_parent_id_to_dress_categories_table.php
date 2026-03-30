@@ -8,6 +8,10 @@ return new class extends Migration
 {
     public function up(): void
     {
+        if (Schema::hasColumn('dress_categories', 'parent_id')) {
+            return;
+        }
+
         Schema::table('dress_categories', function (Blueprint $table) {
             $table->foreignId('parent_id')
                 ->nullable()

@@ -54,6 +54,17 @@ class AdminDressCreateTest extends TestCase
         $response->assertViewHas('sizes');
     }
 
+    public function test_admin_can_access_create_page_with_no_categories(): void
+    {
+        // Verifies the page loads successfully even when no categories exist yet —
+        // this is the real-world state on a fresh production deployment.
+        $response = $this->actingAs($this->makeAdmin())->get(route('admin.dresses.create'));
+
+        $response->assertOk();
+        $response->assertViewIs('admin.dresses.create');
+        $response->assertViewHas('categories');
+    }
+
     // ── POST /admin/dresses ────────────────────────────────────────────────
 
     public function test_admin_can_create_dress_without_images(): void
