@@ -86,14 +86,15 @@ class DressController extends Controller
 
     public function edit(Dress $dress)
     {
-        $dress->load('images');
+        $dress->load(['images', 'ornaments']);
         $categories = DressCategory::topLevel()
             ->where('is_active', true)
             ->with('activeSubcategories')
             ->orderBy('sort_order')
             ->get();
-        $sizes = ['XS', 'S', 'M', 'L', 'XL', 'XXL', 'Free Size'];
-        return view('admin.dresses.edit', compact('dress', 'categories', 'sizes'));
+        $sizes     = ['XS', 'S', 'M', 'L', 'XL', 'XXL', 'Free Size'];
+        $ornaments = Ornament::orderBy('name')->get();
+        return view('admin.dresses.edit', compact('dress', 'categories', 'sizes', 'ornaments'));
     }
 
     public function update(Request $request, Dress $dress)
