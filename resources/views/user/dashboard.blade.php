@@ -84,16 +84,6 @@
                 <div>
                     <div class="font-bold text-gray-900 text-sm">My Profile</div>
                     <div class="text-xs text-gray-400">Update your info</div>
-        @if($recentBookings->count())
-        <div class="divide-y divide-gray-50">
-            @foreach($recentBookings as $booking)
-            <div class="flex items-center gap-4 p-4 hover:bg-gray-50 transition-colors">
-                <div class="w-14 h-14 rounded-xl overflow-hidden bg-gray-100 shrink-0">
-                    @if($booking->dress && $booking->dress->primaryImage())
-                        <img src="{{ $booking->dress->primaryImage()->url }}" class="w-full h-full object-cover" alt="">
-                    @else
-                        <div class="w-full h-full flex items-center justify-center text-2xl">👗</div>
-                    @endif
                 </div>
             </a>
         </div>

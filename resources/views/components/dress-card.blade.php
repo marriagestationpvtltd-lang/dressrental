@@ -1,4 +1,3 @@
-<div class="bg-white rounded-2xl overflow-hidden shadow-sm border border-gray-100 group-hover:border-purple-400 group-hover:shadow-xl card-hover group transition-all duration-300">
 <div class="bg-white rounded-2xl overflow-hidden shadow-card border border-violet-100 hover:border-primary-300 card-hover group transition-all">
     <a href="{{ route('dresses.show', $dress) }}" class="block">
         <!-- Image -->
