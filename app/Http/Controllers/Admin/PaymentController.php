@@ -57,4 +57,26 @@ class PaymentController extends Controller
 
         return back()->with('success', 'Deposit refunded and booking completed.');
     }
+
+    public function approve(Request $request, Payment $payment)
+    {
+        $request->validate(['remarks' => 'nullable|string|max:500']);
+
+        if ($payment->status !== 'pending' || $payment->payment_method !== 'cash') {
+            return back()->withErrors(['error' => 'Only pending offline (cash) payments can be approved.']);
+        }
+
+        $payment->update([
+            'status'      => 'completed',
+            'verified_at' => now(),
+            'remarks'     => $request->remarks ?? 'Approved by admin.',
+        ]);
+
+        $payment->booking->update([
+            'status'  => 'paid',
+            'paid_at' => now(),
+        ]);
+
+        return back()->with('success', 'Offline payment approved and booking marked as paid.');
+    }
 }

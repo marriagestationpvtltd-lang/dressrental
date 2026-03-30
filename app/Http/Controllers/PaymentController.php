@@ -173,6 +173,51 @@ class PaymentController extends Controller
             ->withErrors(['error' => 'Khalti verification failed.']);
     }
 
+    public function offlineInit(Request $request, Booking $booking)
+    {
+        if ($booking->user_id !== auth()->id()) {
+            abort(403);
+        }
+
+        if (! in_array($booking->status, ['pending'])) {
+            return redirect()->route('bookings.show', $booking)
+                ->with('info', 'This booking cannot be paid.');
+        }
+
+        // Prevent duplicate offline payment records for the same booking
+        $existingOfflinePayment = Payment::where('booking_id', $booking->id)
+            ->where('payment_method', 'cash')
+            ->where('status', 'pending')
+            ->exists();
+
+        if ($existingOfflinePayment) {
+            return redirect()->route('payment.offline.confirm', $booking)
+                ->with('info', 'You already have a pending offline payment for this booking.');
+        }
+
+        Payment::create([
+            'booking_id'   => $booking->id,
+            'user_id'      => auth()->id(),
+            'amount'       => $booking->advance_amount,
+            'payment_method' => 'cash',
+            'status'       => 'pending',
+            'payment_type' => 'advance',
+            'remarks'      => 'Offline payment — awaiting admin confirmation.',
+        ]);
+
+        return redirect()->route('payment.offline.confirm', $booking)
+            ->with('success', 'Your order has been submitted. Our team will contact you shortly.');
+    }
+
+    public function offlineConfirm(Booking $booking)
+    {
+        if ($booking->user_id !== auth()->id()) {
+            abort(403);
+        }
+
+        return view('payments.offline-confirm', compact('booking'));
+    }
+
     public function success(Request $request)
     {
         $booking = \App\Models\Booking::findOrFail($request->booking);

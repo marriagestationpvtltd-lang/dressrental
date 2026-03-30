@@ -57,10 +57,24 @@
                 <span class="text-purple-200 text-sm">₨{{ number_format($booking->advance_amount) }}</span>
             </button>
         </form>
+
+        <!-- Offline / Cash -->
+        <div class="relative">
+            <div class="absolute inset-x-0 -top-2 flex items-center justify-center">
+                <span class="bg-white px-2 text-xs text-gray-400">or</span>
+            </div>
+        </div>
+        <form method="POST" action="{{ route('payment.offline.init', $booking) }}">
+            @csrf
+            <button type="submit" class="w-full bg-gray-100 hover:bg-gray-200 text-gray-800 font-bold py-4 rounded-2xl flex items-center justify-center gap-3 transition-colors border border-gray-200">
+                <span class="text-2xl">🏦</span>
+                <span>Pay Offline (Cash / Bank Transfer)</span>
+            </button>
+        </form>
     </div>
 
     <p class="text-center text-xs text-gray-400 mt-4">
-        Secure payment powered by eSewa & Khalti. Your deposit will be refunded after returning the dress.
+        Online payments are secured by eSewa &amp; Khalti. For offline payment, our team will contact you to arrange the transaction.
     </p>
 </div>
 @endsection
