@@ -32,6 +32,32 @@ class PaymentController extends Controller
         return view('admin.payments.show', compact('payment'));
     }
 
+    public function update(Request $request, Payment $payment)
+    {
+        $data = $request->validate([
+            'status'         => 'required|in:pending,completed,failed,refunded',
+            'payment_method' => 'required|in:esewa,khalti,cash',
+            'amount'         => 'required|numeric|min:0',
+            'transaction_id' => 'nullable|string|max:255|unique:payments,transaction_id,' . $payment->id,
+            'remarks'        => 'nullable|string|max:1000',
+        ]);
+
+        $wasCompleted = $payment->status === 'completed';
+
+        if ($data['status'] === 'completed' && ! $wasCompleted && ! $payment->verified_at) {
+            $data['verified_at'] = now();
+        }
+
+        $payment->update($data);
+
+        // Keep booking in sync: mark as paid when advance payment is completed
+        if ($data['status'] === 'completed' && ! $wasCompleted) {
+            $this->syncBookingStatusOnPaymentCompletion($payment);
+        }
+
+        return back()->with('success', 'Payment updated successfully.');
+    }
+
     public function refund(Request $request, Payment $payment)
     {
         $request->validate(['remarks' => 'nullable|string']);
@@ -72,11 +98,17 @@ class PaymentController extends Controller
             'remarks'     => $request->remarks ?? 'Approved by admin.',
         ]);
 
-        $payment->booking->update([
-            'status'  => 'paid',
-            'paid_at' => now(),
-        ]);
+        $this->syncBookingStatusOnPaymentCompletion($payment);
 
         return back()->with('success', 'Offline payment approved and booking marked as paid.');
+    }
+
+    private function syncBookingStatusOnPaymentCompletion(Payment $payment): void
+    {
+        if ($payment->payment_type === 'advance'
+            && $payment->booking
+            && $payment->booking->status === 'pending') {
+            $payment->booking->update(['status' => 'paid', 'paid_at' => now()]);
+        }
     }
 }

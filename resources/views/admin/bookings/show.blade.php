@@ -153,12 +153,18 @@
             @foreach($booking->payments as $payment)
             <div class="flex items-center justify-between px-5 py-3">
                 <div>
-                    <div class="text-sm font-medium capitalize">{{ $payment->payment_type }}</div>
+                    <a href="{{ route('admin.payments.show', $payment) }}" class="text-sm font-medium capitalize text-primary-600 hover:underline">{{ $payment->payment_type }}</a>
                     <div class="text-xs text-gray-500">{{ strtoupper($payment->payment_method) }} · {{ $payment->transaction_id }}</div>
                 </div>
                 <div class="flex items-center gap-3">
                     <span class="font-bold text-sm">₨{{ number_format($payment->amount) }}</span>
                     <span class="px-2 py-0.5 rounded-full text-xs font-medium bg-{{ $payment->status_badge_color }}-100 text-{{ $payment->status_badge_color }}-700">{{ $payment->status }}</span>
+                    @if($payment->status === 'pending' && $payment->payment_method === 'cash')
+                        <form method="POST" action="{{ route('admin.payments.approve', $payment) }}" onsubmit="return confirm('Approve this cash payment?')">
+                            @csrf
+                            <button type="submit" class="text-xs text-green-600 hover:text-green-800 font-medium">Approve</button>
+                        </form>
+                    @endif
                     @if($payment->status === 'completed' && $payment->payment_type === 'advance')
                         <form method="POST" action="{{ route('admin.payments.refund', $payment) }}" onsubmit="return confirm('Refund deposit?')">
                             @csrf
