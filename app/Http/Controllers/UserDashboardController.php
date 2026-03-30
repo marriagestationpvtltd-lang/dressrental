@@ -80,7 +80,7 @@ class UserDashboardController extends Controller
             abort(403);
         }
 
-        $booking->load(['dress.images', 'payments']);
+        $booking->load(['dress.images', 'payments', 'ornaments']);
 
         return view('user.booking-show', compact('booking'));
     }

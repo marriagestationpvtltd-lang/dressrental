@@ -83,6 +83,18 @@
             </div>
         </div>
 
+        @if($booking->ornaments->count())
+        <div class="section">
+            <div class="section-title">Booked Accessories</div>
+            @foreach($booking->ornaments as $ornament)
+            <div class="info-row">
+                <span class="label">{{ $ornament->name }} ({{ \App\Models\Ornament::categoryLabel($ornament->category) }})</span>
+                <span class="value">₨{{ number_format($ornament->pivot->subtotal, 2) }}</span>
+            </div>
+            @endforeach
+        </div>
+        @endif
+
         <div class="section">
             <div class="section-title">Payment Breakdown</div>
             <table class="amounts-table">

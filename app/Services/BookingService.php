@@ -4,6 +4,7 @@ namespace App\Services;
 
 use App\Models\Booking;
 use App\Models\Dress;
+use App\Models\Ornament;
 use Carbon\Carbon;
 
 class BookingService
@@ -59,10 +60,27 @@ class BookingService
 
         $amounts = $this->calculateRentalAmount($dress, $startDate, $endDate);
 
+        // Include selected ornament costs in the totals
+        $ornamentIds = array_filter(array_map('intval', $data['ornaments'] ?? []));
+        $ornaments   = $ornamentIds ? Ornament::whereIn('id', $ornamentIds)->get() : collect();
+
+        $ornamentsRental  = 0;
+        $ornamentsDeposit = 0;
+        foreach ($ornaments as $ornament) {
+            $ornamentsRental  += $ornament->price_per_day * $amounts['total_days'];
+            $ornamentsDeposit += $ornament->deposit_amount;
+        }
+
+        $amounts['rental_amount']  += $ornamentsRental;
+        $amounts['deposit_amount'] += $ornamentsDeposit;
+        $amounts['total_amount']    = $amounts['rental_amount'] + $amounts['deposit_amount'];
+        $advancePercent             = setting('advance_payment_percentage', 50);
+        $amounts['advance_amount']  = round($amounts['total_amount'] * ($advancePercent / 100), 2);
+
         $bsStart = NepaliCalendarService::carbonToBsString($startDate);
         $bsEnd   = NepaliCalendarService::carbonToBsString($endDate);
 
-        return Booking::create([
+        $booking = Booking::create([
             'user_id'        => $data['user_id'],
             'dress_id'       => $dress->id,
             'start_date'     => $startDate->format('Y-m-d'),
@@ -77,5 +95,20 @@ class BookingService
             'notes'          => $data['notes'] ?? null,
             'status'         => 'pending',
         ]);
+
+        // Attach ornaments with snapshot of prices at booking time
+        if ($ornaments->isNotEmpty()) {
+            $pivotData = [];
+            foreach ($ornaments as $ornament) {
+                $pivotData[$ornament->id] = [
+                    'price_per_day'  => $ornament->price_per_day,
+                    'deposit_amount' => $ornament->deposit_amount,
+                    'subtotal'       => ($ornament->price_per_day * $amounts['total_days']) + $ornament->deposit_amount,
+                ];
+            }
+            $booking->ornaments()->sync($pivotData);
+        }
+
+        return $booking;
     }
 }
