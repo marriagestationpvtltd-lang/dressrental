@@ -25,6 +25,25 @@
                 @else
                     <p class="text-violet-200 mt-2 text-sm md:text-base">{{ $dresses->total() }} dresses available in this category</p>
                 @endif
+
+                {{-- Subcategory pills --}}
+                @if($subcategories->count())
+                <div class="flex flex-wrap gap-2 mt-4">
+                    <a href="{{ request()->fullUrlWithQuery(['subcategory' => null, 'page' => null]) }}"
+                       class="inline-flex items-center gap-1.5 px-4 py-1.5 rounded-full text-sm font-semibold transition-all
+                              {{ ! request()->filled('subcategory') ? 'bg-white text-primary-700 shadow' : 'bg-white/20 text-white hover:bg-white/30' }}">
+                        All ({{ $dresses->total() }})
+                    </a>
+                    @foreach($subcategories as $sub)
+                    <a href="{{ request()->fullUrlWithQuery(['subcategory' => $sub->slug, 'page' => null]) }}"
+                       class="inline-flex items-center gap-1.5 px-4 py-1.5 rounded-full text-sm font-semibold transition-all
+                              {{ request('subcategory') === $sub->slug ? 'bg-white text-primary-700 shadow' : 'bg-white/20 text-white hover:bg-white/30' }}">
+                        @if($sub->icon)<span>{{ $sub->icon }}</span>@endif
+                        {{ $sub->name }} ({{ $sub->dresses_count }})
+                    </a>
+                    @endforeach
+                </div>
+                @endif
             </div>
             <div class="mt-2">
                 <x-share-button

@@ -101,6 +101,18 @@
                 </div>
                 <div class="font-bold text-gray-800 text-sm">{{ $cat->name }}</div>
                 <div class="text-xs text-gray-400 mt-1 font-medium">{{ $cat->dresses_count }} dresses</div>
+                @if($cat->activeSubcategories->count())
+                <div class="flex flex-wrap justify-center gap-1 mt-2">
+                    @foreach($cat->activeSubcategories->take(3) as $sub)
+                    <span class="text-xs bg-violet-50 text-violet-600 border border-violet-100 rounded-full px-2 py-0.5">
+                        {{ $sub->icon ? $sub->icon . ' ' : '' }}{{ $sub->name }}
+                    </span>
+                    @endforeach
+                    @if($cat->activeSubcategories->count() > 3)
+                    <span class="text-xs text-gray-400">+{{ $cat->activeSubcategories->count() - 3 }} more</span>
+                    @endif
+                </div>
+                @endif
             </a>
             @endforeach
         </div>

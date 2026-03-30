@@ -14,9 +14,28 @@ class CategoryController extends Controller
             abort(404);
         }
 
+        // Collect all category IDs to query: this category + its active subcategories
+        $categoryIds = collect([$category->id]);
+
+        if ($category->isTopLevel()) {
+            $subcategories = $category->activeSubcategories()
+                ->withCount(['dresses' => fn ($q) => $q->available()])
+                ->get();
+
+            if ($request->filled('subcategory')) {
+                // Narrow to only the requested subcategory
+                $filtered    = $subcategories->firstWhere('slug', $request->subcategory);
+                $categoryIds = $filtered ? collect([$filtered->id]) : collect([]);
+            } else {
+                $categoryIds = $categoryIds->merge($subcategories->pluck('id'));
+            }
+        } else {
+            $subcategories = collect();
+        }
+
         $query = Dress::with(['images', 'category'])
             ->available()
-            ->where('category_id', $category->id);
+            ->whereIn('category_id', $categoryIds);
 
         if ($request->filled('size')) {
             $query->where('size', $request->size);
@@ -41,6 +60,6 @@ class CategoryController extends Controller
         $dresses = $query->paginate(12)->withQueryString();
         $sizes   = ['XS', 'S', 'M', 'L', 'XL', 'XXL', 'Free Size'];
 
-        return view('categories.show', compact('category', 'dresses', 'sizes'));
+        return view('categories.show', compact('category', 'dresses', 'sizes', 'subcategories'));
     }
 }
