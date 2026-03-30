@@ -39,14 +39,9 @@
                            class="w-full border border-gray-200 rounded-xl px-4 py-3 focus:ring-2 focus:ring-primary-500 outline-none">
                 </div>
 
-                <div>
-                    <label class="block text-sm font-medium text-gray-700 mb-1">Category *</label>
-                    <select name="category_id" required class="w-full border border-gray-200 rounded-xl px-4 py-3 focus:ring-2 focus:ring-primary-500 outline-none">
-                        @foreach($categories as $cat)
-                            <option value="{{ $cat->id }}" {{ old('category_id', $dress->category_id) == $cat->id ? 'selected' : '' }}>{{ $cat->name }}</option>
-                        @endforeach
-                    </select>
-                </div>
+                @include('admin.dresses._category_select', [
+                    'currentCategoryId' => old('category_id', $dress->category_id),
+                ])
 
                 <div>
                     <label class="block text-sm font-medium text-gray-700 mb-1">Size *</label>
