@@ -2,6 +2,29 @@
 
 @section('title', 'Premium Dress Rentals in Nepal')
 
+@push('styles')
+<style>
+@keyframes featured-scroll {
+    from { transform: translateX(0); }
+    to   { transform: translateX(-50%); }
+}
+.featured-slider {
+    display: flex;
+    width: max-content;
+    animation: featured-scroll 35s linear infinite;
+}
+.featured-slider-item {
+    flex-shrink: 0;
+    width: 13rem; /* w-52 */
+}
+@media (min-width: 768px) {
+    .featured-slider-item {
+        width: 15rem; /* w-60 */
+    }
+}
+</style>
+@endpush
+
 @section('content')
 
 <!-- ═══════════════════ HERO ═══════════════════ -->
@@ -134,10 +157,26 @@
                 View All <svg class="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17 8l4 4m0 0l-4 4m4-4H3"/></svg>
             </a>
         </div>
-        <div class="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-5 md:gap-6">
-            @foreach($featuredDresses as $dress)
-                @include('components.dress-card', ['dress' => $dress])
-            @endforeach
+
+        <!-- Single-row infinite auto-scroll slider -->
+        <div class="overflow-hidden"
+             x-data="{ paused: false }"
+             @mouseenter="paused = true"
+             @mouseleave="paused = false">
+            <div class="featured-slider flex gap-5"
+                 :style="{ animationPlayState: paused ? 'paused' : 'running' }">
+
+                {{-- First copy --}}
+                @foreach($featuredDresses as $dress)
+                    @include('components.featured-slider-card', ['dress' => $dress])
+                @endforeach
+
+                {{-- Duplicate copy for seamless infinite loop --}}
+                @foreach($featuredDresses as $dress)
+                    @include('components.featured-slider-card', ['dress' => $dress, 'ariaHidden' => true])
+                @endforeach
+
+            </div>
         </div>
     </div>
 </section>
