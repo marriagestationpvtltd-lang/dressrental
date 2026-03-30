@@ -3,8 +3,10 @@
 namespace App\Http\Controllers\Admin;
 
 use App\Http\Controllers\Controller;
+use App\Mail\BookingStatusUpdated;
 use App\Models\Booking;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\Mail;
 
 class BookingController extends Controller
 {
@@ -46,11 +48,21 @@ class BookingController extends Controller
             'fine_amount'=> 'nullable|numeric|min:0',
         ]);
 
+        $previousStatus = $booking->status;
+
         if ($data['status'] === 'returned' && ! $booking->returned_at) {
             $data['returned_at'] = now();
         }
 
         $booking->update($data);
+
+        if ($booking->status !== $previousStatus) {
+            try {
+                Mail::to($booking->user->email)->send(new BookingStatusUpdated($booking->load(['dress', 'user']), $previousStatus));
+            } catch (\Exception) {
+                // Non-fatal: status is updated, email delivery failure should not block admin flow
+            }
+        }
 
         return back()->with('success', 'Booking status updated.');
     }
@@ -58,7 +70,17 @@ class BookingController extends Controller
     public function updateStatus(Request $request, Booking $booking)
     {
         $request->validate(['status' => 'required|in:pending,paid,active,returned,completed,cancelled']);
+        $previousStatus = $booking->status;
         $booking->update(['status' => $request->status]);
+
+        if ($booking->status !== $previousStatus) {
+            try {
+                Mail::to($booking->user->email)->send(new BookingStatusUpdated($booking->load(['dress', 'user']), $previousStatus));
+            } catch (\Exception) {
+                // Non-fatal: status is updated, email delivery failure should not block admin flow
+            }
+        }
+
         return back()->with('success', 'Status updated to ' . $request->status);
     }
 }

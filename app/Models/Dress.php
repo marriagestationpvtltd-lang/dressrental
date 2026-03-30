@@ -5,7 +5,9 @@ namespace App\Models;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
+use Illuminate\Database\Eloquent\Relations\BelongsToMany;
 use Illuminate\Database\Eloquent\Relations\HasMany;
+use Illuminate\Support\Facades\Storage;
 use Illuminate\Support\Str;
 
 class Dress extends Model
@@ -66,6 +68,11 @@ class Dress extends Model
         return $this->hasMany(Booking::class);
     }
 
+    public function ornaments(): BelongsToMany
+    {
+        return $this->belongsToMany(Ornament::class, 'dress_ornament');
+    }
+
     public function activeBookings(): HasMany
     {
         return $this->hasMany(Booking::class)
@@ -89,7 +96,7 @@ class Dress extends Model
     {
         $img = $this->primaryImage();
         if ($img) {
-            return asset('storage/' . $img->image_path);
+            return Storage::disk('public')->url($img->image_path);
         }
         return asset('images/dress-placeholder.svg');
     }

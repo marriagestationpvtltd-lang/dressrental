@@ -7,82 +7,78 @@
 # Setup (one-time, all done through the cPanel web interface):
 #   1. cPanel → Git™ Version Control → Create Repository
 #      Clone URL       : https://github.com/marriagestationpvtltd-lang/dressrental.git
-#      Repository Path : the same path you set as the subdomain/domain document root
-#                        (see "Finding your document root" below)
-#   2. Set DEPLOYPATH on the line below to match that document root, then
-#      commit and push to GitHub.
-#   3. cPanel → File Manager → navigate to that folder → upload a configured
+#      Repository Path : the DOMAIN ROOT (NOT the public/ subfolder — see below)
+#   2. cPanel → File Manager → navigate to that folder → upload a configured
 #      .env file (copy .env.example, fill in DB credentials and admin details).
 #      You can skip this — step 3 below will create one from .env.example
 #      automatically, but you MUST then edit it with your real credentials.
-#   4. cPanel → Git™ Version Control → Manage → "Deploy HEAD Commit"
+#   3. cPanel → Git™ Version Control → Manage → "Deploy HEAD Commit"
 #      (after the first deploy, every git push triggers this automatically).
 #
-# ── Finding your document root ───────────────────────────────────────────────
-# The path depends on where your domain/subdomain is hosted:
+# ── Finding the correct Repository Path ─────────────────────────────────────
+# The repository must be cloned to the DOMAIN ROOT — the folder that contains
+# the public/ subdirectory, NOT to public/ itself.
 #
-#   Main domain (public_html):
-#     /home/cpanelusername/public_html
+# cPanel tasks run with the repository directory as the working directory, so
+# composer, artisan, and npm commands all run from the domain root automatically.
+# The included .htaccess routes all web traffic into public/, so the domain root
+# can safely be set as the document root in cPanel.
 #
-#   Subdomain created in cPanel → Subdomains (most common for add-on sites):
-#     /home/cpanelusername/your-subdomain.yourdomain.com
-#     (cPanel creates this folder automatically when you add the subdomain)
+#   Main domain:
+#     Repository Path : /home/cpanelusername/public_html
+#     (set document root to /home/cpanelusername/public_html in cPanel)
 #
-#   Subdomain pointing to a subfolder of public_html:
-#     /home/cpanelusername/public_html/subdomain-name
+#   Subdomain (most common for add-on sites):
+#     Repository Path : /home/cpanelusername/your-subdomain.yourdomain.com
+#     (cPanel creates this folder when you add the subdomain; set its
+#      document root to the same path — not to a public/ subfolder)
 #
-# To confirm the exact path: cPanel → Subdomains (or Domains) → look at the
-# "Document Root" column next to your domain/subdomain name.
+# To confirm: cPanel → Subdomains (or Domains) → "Document Root" column.
 # ─────────────────────────────────────────────────────────────────────────────
 
 deployment:
   tasks:
-    # ↓ Set this to the Document Root shown in cPanel for your domain/subdomain.
-    # cPanel's .cpanel.yml requires a literal path here — environment variables
-    # are not available at this stage of the deployment runner.
-    # Examples:
-    #   Main domain  : /home/cpanelusername/public_html/
-    #   Subdomain    : /home/cpanelusername/your-subdomain.yourdomain.com/
-    - export DEPLOYPATH=/home/digitallami/kapada.sajilobihe.com/
+    # cPanel runs every task below with the repository directory as CWD.
+    # No file-copy step is needed — the repo IS the deployment directory.
 
-    # 1. Copy repository files to the web root
-    - /bin/cp -R . $DEPLOYPATH
+    # 1. Install/update PHP dependencies (no dev packages on production)
+    - composer install --no-dev --optimize-autoloader --no-interaction
 
-    # 2. Install/update PHP dependencies (no dev packages on production)
-    - cd $DEPLOYPATH && composer install --no-dev --optimize-autoloader --no-interaction
-
-    # 3. Create .env from the example template if it does not yet exist.
+    # 2. Create .env from the example template if it does not yet exist.
     #    IMPORTANT: after the very first deploy, open .env in cPanel File Manager
     #    and fill in your real DB credentials, APP_URL, and payment keys.
-    - cd $DEPLOYPATH && test -f .env || cp .env.example .env
+    - test -f .env || cp .env.example .env
 
-    # 4. Generate APP_KEY if the field is still blank or incomplete (runs only once — safe).
+    # 3. Generate APP_KEY if the field is still blank or incomplete (runs only once — safe).
     #    Laravel keys are base64-encoded 32 bytes = 44 characters (43 base64 chars + 1 padding '=').
-    - cd $DEPLOYPATH && grep -qE 'APP_KEY=base64:[A-Za-z0-9+/]{43}=' .env || php artisan key:generate --force
+    - grep -qE 'APP_KEY=base64:[A-Za-z0-9+/]{43}=' .env || php artisan key:generate --force
 
-    # 5. Build front-end assets (CSS / JS via Vite + Tailwind).
+    # 4. Build front-end assets (CSS / JS via Vite + Tailwind).
     #    Requires Node.js ≥ 20 on the server.
     #    If your host does not have Node.js, build locally with
     #      npm ci && npm run build
     #    and commit the public/build/ folder before pushing.
-    - cd $DEPLOYPATH && if command -v npm >/dev/null 2>&1; then npm ci && npm run build; else echo "Node.js not found — skipping front-end build. Pre-build assets locally and commit public/build/ if the site has no styling."; fi
+    - if command -v npm >/dev/null 2>&1; then npm ci && npm run build; else echo "Node.js not found — skipping front-end build. Pre-build assets locally and commit public/build/ if the site has no styling."; fi
 
-    # 6. Create the storage symlink (public/storage → storage/app/public).
+    # 5. Create the storage symlink (public/storage → storage/app/public).
     #    Needed so uploaded files and images are publicly accessible.
-    - cd $DEPLOYPATH && php artisan storage:link --force
+    - php artisan storage:link --force
 
-    # 7. Run any new database migrations (safe — never deletes existing data)
-    - cd $DEPLOYPATH && php artisan migrate --force
+    # 6. Run any new database migrations (safe — never deletes existing data)
+    - php artisan migrate --force
 
-    # 8. Seed the admin account from .env credentials.
+    # 7. Seed the admin account from .env credentials.
     #    ProductionSeeder uses firstOrCreate, so it is safe to run on every deploy —
     #    it will only insert the admin row if it does not already exist.
     #    --force suppresses the "are you sure?" prompt; idempotency is handled by the seeder.
     #    Requires ADMIN_EMAIL, ADMIN_PASSWORD, and ADMIN_PHONE to be set in .env.
-    - cd $DEPLOYPATH && php artisan db:seed --class=ProductionSeeder --force
+    - php artisan db:seed --class=ProductionSeeder --force
 
-    # 9. Clear and rebuild all caches
-    - cd $DEPLOYPATH && php artisan config:cache
-    - cd $DEPLOYPATH && php artisan route:cache
-    - cd $DEPLOYPATH && php artisan view:cache
-    - cd $DEPLOYPATH && php artisan event:cache
+    # 8. Clear all stale caches first, then rebuild fresh ones.
+    #    optimize:clear wipes config, route, view, event, and bootstrap caches
+    #    so that any leftover files from a previous deploy cannot interfere.
+    - php artisan optimize:clear
+    - php artisan config:cache
+    - php artisan route:cache
+    - php artisan view:cache
+    - php artisan event:cache

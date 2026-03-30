@@ -3,8 +3,10 @@
 use App\Http\Controllers\Admin;
 use App\Http\Controllers\AuthController;
 use App\Http\Controllers\BookingController;
+use App\Http\Controllers\CategoryController;
 use App\Http\Controllers\DressController;
 use App\Http\Controllers\HomeController;
+use App\Http\Controllers\PageController;
 use App\Http\Controllers\PaymentController;
 use App\Http\Controllers\UserDashboardController;
 use Illuminate\Support\Facades\Route;
@@ -12,7 +14,13 @@ use Illuminate\Support\Facades\Route;
 // ─── Public ──────────────────────────────────────────────────────────────────
 Route::get('/', [HomeController::class, 'index'])->name('home');
 Route::get('/dresses', [DressController::class, 'index'])->name('dresses.index');
+Route::get('/dresses/featured', [DressController::class, 'featured'])->name('dresses.featured');
+Route::get('/dresses/new-arrivals', [DressController::class, 'newArrivals'])->name('dresses.new-arrivals');
 Route::get('/dresses/{dress:slug}', [DressController::class, 'show'])->name('dresses.show');
+Route::get('/categories/{category:slug}', [CategoryController::class, 'show'])->name('categories.show');
+
+// Static pages (privacy policy, terms & conditions, etc.)
+Route::get('/pages/{slug}', [PageController::class, 'show'])->name('pages.show');
 
 // Availability check (open for AJAX)
 Route::post('/dresses/{dress}/availability', [BookingController::class, 'checkAvailability'])
@@ -24,6 +32,10 @@ Route::middleware('guest')->group(function () {
     Route::post('/login', [AuthController::class, 'login']);
     Route::get('/register', [AuthController::class, 'showRegister'])->name('register');
     Route::post('/register', [AuthController::class, 'register']);
+
+    // Google OAuth
+    Route::get('/auth/google', [AuthController::class, 'redirectToGoogle'])->name('auth.google');
+    Route::get('/auth/google/callback', [AuthController::class, 'handleGoogleCallback'])->name('auth.google.callback');
 });
 
 Route::post('/logout', [AuthController::class, 'logout'])->name('logout')->middleware('auth');
@@ -43,6 +55,8 @@ Route::middleware('auth')->group(function () {
     Route::get('/payment/esewa/verify/{payment}', [PaymentController::class, 'esewaVerify'])->name('payment.esewa.verify');
     Route::post('/payment/{booking}/khalti', [PaymentController::class, 'khaltiInit'])->name('payment.khalti.init');
     Route::get('/payment/khalti/verify', [PaymentController::class, 'khaltiVerify'])->name('payment.khalti.verify');
+    Route::post('/payment/{booking}/offline', [PaymentController::class, 'offlineInit'])->name('payment.offline.init');
+    Route::get('/payment/{booking}/offline-confirm', [PaymentController::class, 'offlineConfirm'])->name('payment.offline.confirm');
     Route::get('/payment/success', [PaymentController::class, 'success'])->name('payment.success');
     Route::get('/payment/failure', [PaymentController::class, 'failure'])->name('payment.failure');
 });
@@ -62,11 +76,29 @@ Route::middleware(['auth', 'admin'])->prefix('admin')->name('admin.')->group(fun
     // Payments
     Route::resource('payments', Admin\PaymentController::class)->only(['index', 'show']);
     Route::post('/payments/{payment}/refund', [Admin\PaymentController::class, 'refund'])->name('payments.refund');
+    Route::post('/payments/{payment}/approve', [Admin\PaymentController::class, 'approve'])->name('payments.approve');
 
     // Users
     Route::resource('users', Admin\UserController::class)->only(['index', 'show']);
 
     // Categories
     Route::resource('categories', Admin\CategoryController::class);
+    Route::get('/categories/{category}/ornaments', [Admin\CategoryOrnamentController::class, 'manage'])->name('categories.ornaments.manage');
+    Route::post('/categories/{category}/ornaments', [Admin\CategoryOrnamentController::class, 'store'])->name('categories.ornaments.store');
+    Route::delete('/categories/{category}/ornaments/{ornament}', [Admin\CategoryOrnamentController::class, 'destroy'])->name('categories.ornaments.destroy');
+    Route::post('/categories/{category}/ornaments/reorder', [Admin\CategoryOrnamentController::class, 'reorder'])->name('categories.ornaments.reorder');
+
+    // Ornaments
+    Route::resource('ornaments', Admin\OrnamentController::class);
+
+    // Settings
+    Route::get('/settings', [Admin\SettingsController::class, 'index'])->name('settings.index');
+    Route::put('/settings', [Admin\SettingsController::class, 'update'])->name('settings.update');
+
+    // Pages
+    Route::resource('pages', Admin\PageController::class)->except(['show']);
+
+    // AI
+    Route::post('/ai/describe-image', [Admin\AiController::class, 'describeImage'])->name('ai.describe-image');
 });
 

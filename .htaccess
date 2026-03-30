@@ -1,11 +1,27 @@
 <IfModule mod_rewrite.c>
     RewriteEngine On
 
+    # Allow .well-known/ through unmodified (required for SSL/Let's Encrypt validation).
+    RewriteRule ^\.well-known/ - [L]
+
+    # Block direct access to any file that lives outside public/.
+    # This prevents .env, routes/, app/, config/, and other sensitive Laravel
+    # source files from being served when the full repo is deployed to public_html/.
+    RewriteCond %{REQUEST_URI} !^/public/
+    RewriteCond %{REQUEST_FILENAME} -f
+    RewriteRule ^ - [F,L]
+
     # Route all web requests into the public/ subdirectory.
     # Required because cPanel deploys the full Laravel repo to public_html/,
     # while the actual front controller lives at public/index.php.
-    RewriteCond %{REQUEST_FILENAME} !-f
-    RewriteCond %{REQUEST_FILENAME} !-d
+    #
+    # Two independent loop-prevention checks are used for maximum compatibility
+    # with Apache and LiteSpeed (both are common on cPanel shared hosting):
+    #   1. REQUEST_URI check  — prevents re-rewriting once the URI contains /public/.
+    #      Works when the server updates REQUEST_URI after the internal rewrite.
+    #   2. ENV:REWRITTEN flag — set on the first rewrite; prevents re-rewriting on
+    #      the restart pass even if REQUEST_URI was not updated by the server.
     RewriteCond %{REQUEST_URI} !^/public/
-    RewriteRule ^(.*)$ public/$1 [L]
+    RewriteCond %{ENV:REWRITTEN} !1
+    RewriteRule ^(.*)$ public/$1 [L,QSA,E=REWRITTEN:1]
 </IfModule>

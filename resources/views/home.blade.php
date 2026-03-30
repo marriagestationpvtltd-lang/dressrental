@@ -3,150 +3,231 @@
 @section('title', 'Premium Dress Rentals in Nepal')
 
 @section('content')
-<!-- Hero Section -->
-<section class="gradient-bg text-white">
-    <div class="max-w-7xl mx-auto px-4 py-20 md:py-32">
+
+<!-- ═══════════════════ HERO ═══════════════════ -->
+<section class="relative gradient-hero text-white overflow-hidden">
+    <!-- Decorative blobs -->
+    <div class="absolute -top-24 -left-24 w-96 h-96 bg-white/5 rounded-full blur-3xl pointer-events-none"></div>
+    <div class="absolute -bottom-16 -right-16 w-80 h-80 bg-rose-500/20 rounded-full blur-3xl pointer-events-none"></div>
+    <div class="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[600px] h-[600px] bg-primary-700/20 rounded-full blur-3xl pointer-events-none"></div>
+
+    <div class="relative max-w-7xl mx-auto px-4 py-24 md:py-36">
         <div class="text-center max-w-3xl mx-auto">
-            <div class="inline-flex items-center gap-2 bg-white/20 backdrop-blur-sm rounded-full px-4 py-2 text-sm font-medium mb-6">
-                <span>🎉</span>
-                <span>Nepal's #1 Dress Rental Platform</span>
+            <!-- Badge -->
+            <div class="inline-flex items-center gap-2 bg-white/15 backdrop-blur-sm border border-white/20 rounded-full px-5 py-2 text-sm font-semibold mb-8 shadow-lg">
+                <span class="w-2 h-2 bg-amber-400 rounded-full animate-pulse"></span>
+                Nepal's #1 Dress Rental Platform
             </div>
-            <h1 class="text-4xl md:text-6xl font-bold mb-6 leading-tight">
+            <!-- Headline -->
+            <h1 class="text-4xl sm:text-5xl md:text-7xl font-extrabold mb-6 leading-[1.1] tracking-tight">
                 Rent · Wear · Return
-                <span class="block text-yellow-300">Look Stunning Always</span>
+                <span class="block mt-2 text-amber-300 drop-shadow-lg">Look Stunning Always</span>
             </h1>
-            <p class="text-lg md:text-xl text-purple-100 mb-8">
-                Browse thousands of premium dresses. Book with Nepali calendar. Pay with eSewa & Khalti.
+            <!-- Sub-heading -->
+            <p class="text-lg md:text-xl text-violet-200 mb-10 max-w-xl mx-auto leading-relaxed">
+                Browse premium dresses. Book with the Nepali calendar. Pay with eSewa &amp; Khalti — seamlessly.
             </p>
+            <!-- CTAs -->
             <div class="flex flex-col sm:flex-row gap-4 justify-center">
-                <a href="{{ route('dresses.index') }}" class="bg-white text-primary-700 font-bold px-8 py-4 rounded-2xl hover:bg-yellow-50 transition-all shadow-lg text-lg">
-                    Browse Dresses →
+                <a href="{{ route('dresses.index') }}"
+                   class="inline-flex items-center justify-center gap-2 bg-white text-primary-700 font-extrabold px-9 py-4 rounded-2xl hover:bg-amber-50 transition-all shadow-xl text-base md:text-lg">
+                    Browse Dresses
+                    <svg class="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M17 8l4 4m0 0l-4 4m4-4H3"/></svg>
                 </a>
                 @guest
-                    <a href="{{ route('register') }}" class="bg-white/20 border-2 border-white text-white font-bold px-8 py-4 rounded-2xl hover:bg-white/30 transition-all text-lg">
+                    <a href="{{ route('register') }}"
+                       class="inline-flex items-center justify-center gap-2 bg-white/15 border-2 border-white/50 text-white font-bold px-9 py-4 rounded-2xl hover:bg-white/25 transition-all text-base md:text-lg backdrop-blur-sm">
                         Get Started Free
                     </a>
                 @endguest
             </div>
         </div>
     </div>
-</section>
 
-<!-- Stats Bar -->
-<section class="bg-white shadow-sm">
-    <div class="max-w-7xl mx-auto px-4 py-6">
-        <div class="grid grid-cols-3 md:grid-cols-3 gap-4 text-center">
-            <div>
-                <div class="text-2xl md:text-3xl font-bold text-primary-600">500+</div>
-                <div class="text-sm text-gray-500">Premium Dresses</div>
-            </div>
-            <div>
-                <div class="text-2xl md:text-3xl font-bold text-primary-600">2000+</div>
-                <div class="text-sm text-gray-500">Happy Customers</div>
-            </div>
-            <div>
-                <div class="text-2xl md:text-3xl font-bold text-primary-600">₨50+</div>
-                <div class="text-sm text-gray-500">Starting Price/Day</div>
-            </div>
-        </div>
+    <!-- Wave divider -->
+    <div class="relative h-8 md:h-12 overflow-hidden">
+        <svg viewBox="0 0 1440 48" class="absolute bottom-0 w-full" preserveAspectRatio="none" fill="#f9fafb">
+            <path d="M0,48 C360,0 1080,0 1440,48 L1440,48 L0,48 Z"/>
+        </svg>
     </div>
 </section>
 
-<!-- Categories -->
-@if($categories->count())
-<section class="py-12 px-4 max-w-7xl mx-auto">
-    <div class="flex items-center justify-between mb-8">
-        <div>
-            <h2 class="text-2xl md:text-3xl font-bold text-gray-900">Shop by Category</h2>
-            <p class="text-gray-500 mt-1">Find the perfect dress for every occasion</p>
-        </div>
-        <a href="{{ route('dresses.index') }}" class="text-primary-600 font-medium hover:underline hidden md:block">View All →</a>
-    </div>
-    <div class="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-6 gap-4">
-        @foreach($categories as $cat)
-        <a href="{{ route('dresses.index', ['category' => $cat->slug]) }}"
-           class="bg-white rounded-2xl p-4 text-center shadow-sm hover:shadow-md transition-all border border-gray-100 card-hover group">
-            <div class="w-12 h-12 gradient-bg rounded-xl flex items-center justify-center mx-auto mb-3 text-xl group-hover:scale-110 transition-transform">
-                {{ $cat->icon ?: '👗' }}
-            </div>
-            <div class="font-semibold text-gray-800 text-sm">{{ $cat->name }}</div>
-            <div class="text-xs text-gray-500 mt-1">{{ $cat->dresses_count }} dresses</div>
-        </a>
-        @endforeach
-    </div>
-</section>
-@endif
-
-<!-- Featured Dresses -->
-@if($featuredDresses->count())
-<section class="py-12 px-4 max-w-7xl mx-auto">
-    <div class="flex items-center justify-between mb-8">
-        <div>
-            <h2 class="text-2xl md:text-3xl font-bold text-gray-900">Featured Dresses</h2>
-            <p class="text-gray-500 mt-1">Hand-picked premium selections</p>
-        </div>
-        <a href="{{ route('dresses.index') }}" class="text-primary-600 font-medium hover:underline">View All →</a>
-    </div>
-    <div class="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-4 md:gap-6">
-        @foreach($featuredDresses as $dress)
-            @include('components.dress-card', ['dress' => $dress])
-        @endforeach
-    </div>
-</section>
-@endif
-
-<!-- How it works -->
-<section class="py-16 bg-gradient-to-br from-purple-50 to-pink-50">
-    <div class="max-w-7xl mx-auto px-4">
-        <div class="text-center mb-12">
-            <h2 class="text-2xl md:text-3xl font-bold text-gray-900">How It Works</h2>
-            <p class="text-gray-500 mt-2">Simple 4-step process</p>
-        </div>
-        <div class="grid grid-cols-2 md:grid-cols-4 gap-6">
+<!-- ═══════════════════ STATS ═══════════════════ -->
+<section class="bg-gray-50 border-b border-gray-100">
+    <div class="max-w-7xl mx-auto px-4 py-8">
+        <div class="grid grid-cols-3 gap-6 text-center">
             @foreach([
-                ['emoji' => '👀', 'title' => 'Browse', 'desc' => 'Explore hundreds of premium dresses'],
-                ['emoji' => '📅', 'title' => 'Book', 'desc' => 'Select dates using Nepali calendar'],
-                ['emoji' => '💳', 'title' => 'Pay', 'desc' => 'Pay via eSewa or Khalti'],
-                ['emoji' => '👗', 'title' => 'Wear & Return', 'desc' => 'Enjoy & return on time'],
-            ] as $i => $step)
-            <div class="text-center">
-                <div class="w-16 h-16 bg-white rounded-2xl shadow-md flex items-center justify-center text-3xl mx-auto mb-4">
-                    {{ $step['emoji'] }}
+                ['value' => '500+', 'label' => 'Premium Dresses', 'icon' => '👗', 'color' => 'primary'],
+                ['value' => '2000+', 'label' => 'Happy Customers', 'icon' => '😊', 'color' => 'rose'],
+                ['value' => '₨50+', 'label' => 'Starting/Day', 'icon' => '💰', 'color' => 'amber'],
+            ] as $stat)
+            <div class="flex flex-col items-center gap-1">
+                <div class="w-10 h-10 rounded-2xl {{ $stat['color'] === 'primary' ? 'bg-violet-100 border border-violet-200' : ($stat['color'] === 'rose' ? 'bg-rose-100 border border-rose-200' : 'bg-amber-100 border border-amber-200') }} flex items-center justify-center text-xl mb-1">
+                    {{ $stat['icon'] }}
                 </div>
-                <div class="text-xs font-bold text-primary-600 uppercase tracking-wider mb-1">Step {{ $i+1 }}</div>
-                <h3 class="font-bold text-gray-900 mb-1">{{ $step['title'] }}</h3>
-                <p class="text-sm text-gray-500">{{ $step['desc'] }}</p>
+                <div class="text-2xl md:text-3xl font-extrabold {{ $stat['color'] === 'primary' ? 'text-primary-600' : ($stat['color'] === 'rose' ? 'text-rose-500' : 'text-amber-500') }}">
+                    {{ $stat['value'] }}
+                </div>
+                <div class="text-xs md:text-sm text-gray-500 font-medium">{{ $stat['label'] }}</div>
             </div>
             @endforeach
         </div>
     </div>
 </section>
 
-<!-- New Arrivals -->
-@if($newArrivals->count())
-<section class="py-12 px-4 max-w-7xl mx-auto">
-    <div class="flex items-center justify-between mb-8">
-        <div>
-            <h2 class="text-2xl md:text-3xl font-bold text-gray-900">New Arrivals</h2>
-            <p class="text-gray-500 mt-1">Fresh additions to our collection</p>
+<!-- ═══════════════════ CATEGORIES ═══════════════════ -->
+@if($categories->count())
+<section class="section-violet py-16">
+    <div class="max-w-7xl mx-auto px-4">
+        <div class="flex items-end justify-between mb-10">
+            <div>
+                <span class="inline-block text-xs font-bold text-primary-600 uppercase tracking-widest bg-primary-100 border border-primary-200 rounded-full px-3 py-1 mb-3">Collections</span>
+                <h2 class="text-2xl md:text-3xl font-extrabold text-gray-900">Shop by Category</h2>
+                <p class="text-gray-500 mt-1.5 text-sm">Find the perfect dress for every occasion</p>
+            </div>
+            <a href="{{ route('dresses.index') }}" class="hidden md:inline-flex items-center gap-1.5 text-primary-600 font-semibold text-sm hover:text-primary-700 border border-primary-200 bg-white rounded-xl px-4 py-2 shadow-sm hover:shadow transition-all">
+                View All <svg class="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17 8l4 4m0 0l-4 4m4-4H3"/></svg>
+            </a>
         </div>
-    </div>
-    <div class="grid grid-cols-2 md:grid-cols-4 gap-4 md:gap-6">
-        @foreach($newArrivals as $dress)
-            @include('components.dress-card', ['dress' => $dress])
-        @endforeach
+        @php
+            $catColors = ['gradient-bg','gradient-rose','gradient-gold','gradient-emerald','gradient-hero','gradient-bg'];
+        @endphp
+        <div class="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-6 gap-4">
+            @foreach($categories as $i => $cat)
+            <a href="{{ route('categories.show', $cat->slug) }}"
+               class="bg-white rounded-2xl p-5 text-center shadow-card hover:shadow-card-hover transition-all border border-violet-100 hover:border-primary-300 card-hover group">
+                <div class="w-14 h-14 {{ $catColors[$loop->index % count($catColors)] }} rounded-2xl flex items-center justify-center mx-auto mb-3 text-2xl group-hover:scale-110 transition-transform shadow-sm">
+                    {{ $cat->icon ?: '👗' }}
+                </div>
+                <div class="font-bold text-gray-800 text-sm">{{ $cat->name }}</div>
+                <div class="text-xs text-gray-400 mt-1 font-medium">{{ $cat->dresses_count }} dresses</div>
+                @if($cat->activeSubcategories->count())
+                <div class="flex flex-wrap justify-center gap-1 mt-2">
+                    @foreach($cat->activeSubcategories->take(3) as $sub)
+                    <span class="text-xs bg-violet-50 text-violet-600 border border-violet-100 rounded-full px-2 py-0.5">
+                        {{ $sub->icon ? $sub->icon . ' ' : '' }}{{ $sub->name }}
+                    </span>
+                    @endforeach
+                    @if($cat->activeSubcategories->count() > 3)
+                    <span class="text-xs text-gray-400">+{{ $cat->activeSubcategories->count() - 3 }} more</span>
+                    @endif
+                </div>
+                @endif
+            </a>
+            @endforeach
+        </div>
     </div>
 </section>
 @endif
 
-<!-- CTA Banner -->
-<section class="mx-4 mb-12 rounded-3xl gradient-bg text-white overflow-hidden">
-    <div class="px-8 py-12 text-center">
-        <h2 class="text-2xl md:text-3xl font-bold mb-4">Ready to Look Stunning?</h2>
-        <p class="text-purple-100 mb-8 max-w-md mx-auto">Join thousands of customers who rent premium dresses for every occasion.</p>
-        <a href="{{ route('dresses.index') }}" class="inline-block bg-white text-primary-700 font-bold px-8 py-4 rounded-2xl hover:bg-yellow-50 transition-all shadow-lg">
-            Explore Dresses
-        </a>
+<!-- ═══════════════════ FEATURED DRESSES ═══════════════════ -->
+@if($featuredDresses->count())
+<section class="bg-white py-16">
+    <div class="max-w-7xl mx-auto px-4">
+        <div class="flex items-end justify-between mb-10">
+            <div>
+                <span class="inline-block text-xs font-bold text-amber-600 uppercase tracking-widest bg-amber-100 border border-amber-200 rounded-full px-3 py-1 mb-3">⭐ Hand-Picked</span>
+                <h2 class="text-2xl md:text-3xl font-extrabold text-gray-900">Featured Dresses</h2>
+                <p class="text-gray-500 mt-1.5 text-sm">Premium selections curated just for you</p>
+            </div>
+            <a href="{{ route('dresses.featured') }}" class="hidden md:inline-flex items-center gap-1.5 text-amber-600 font-semibold text-sm hover:text-amber-700 border border-amber-200 bg-amber-50 rounded-xl px-4 py-2 shadow-sm hover:shadow transition-all">
+                View All <svg class="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17 8l4 4m0 0l-4 4m4-4H3"/></svg>
+            </a>
+        </div>
+        <div class="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-5 md:gap-6">
+            @foreach($featuredDresses as $dress)
+                @include('components.dress-card', ['dress' => $dress])
+            @endforeach
+        </div>
+    </div>
+</section>
+@endif
+
+<!-- ═══════════════════ HOW IT WORKS ═══════════════════ -->
+<section class="section-mixed py-20">
+    <div class="max-w-7xl mx-auto px-4">
+        <div class="text-center mb-14">
+            <span class="inline-block text-xs font-bold text-rose-600 uppercase tracking-widest bg-rose-100 border border-rose-200 rounded-full px-3 py-1 mb-3">Simple Process</span>
+            <h2 class="text-2xl md:text-3xl font-extrabold text-gray-900">How It Works</h2>
+            <p class="text-gray-500 mt-2 text-sm">Just 4 easy steps to your perfect look</p>
+        </div>
+        @php
+            $steps = [
+                ['emoji' => '👀', 'title' => 'Browse', 'desc' => 'Explore hundreds of premium dresses in every style', 'color' => 'violet', 'bg' => 'bg-violet-100 border-violet-200', 'num' => 'bg-violet-600'],
+                ['emoji' => '📅', 'title' => 'Book', 'desc' => 'Select your dates using Nepali BS calendar', 'color' => 'rose', 'bg' => 'bg-rose-100 border-rose-200', 'num' => 'bg-rose-500'],
+                ['emoji' => '💳', 'title' => 'Pay', 'desc' => 'Securely pay via eSewa, Khalti or cash', 'color' => 'amber', 'bg' => 'bg-amber-100 border-amber-200', 'num' => 'bg-amber-500'],
+                ['emoji' => '👗', 'title' => 'Wear & Return', 'desc' => 'Enjoy your event and return on time', 'color' => 'emerald', 'bg' => 'bg-emerald-100 border-emerald-200', 'num' => 'bg-emerald-500'],
+            ];
+        @endphp
+        <div class="grid grid-cols-2 md:grid-cols-4 gap-6 md:gap-8 relative">
+            <!-- Connector line (desktop only) -->
+            <div class="hidden md:block absolute top-10 left-[12.5%] right-[12.5%] h-0.5 bg-gradient-to-r from-violet-300 via-rose-300 via-amber-300 to-emerald-300 z-0"></div>
+            @foreach($steps as $i => $step)
+            <div class="relative z-10 text-center group">
+                <div class="w-20 h-20 {{ $step['bg'] }} border-2 rounded-3xl shadow-card flex items-center justify-center text-4xl mx-auto mb-4 group-hover:scale-110 transition-transform">
+                    {{ $step['emoji'] }}
+                </div>
+                <div class="inline-flex items-center justify-center w-6 h-6 {{ $step['num'] }} text-white text-xs font-black rounded-full mb-2 shadow-sm">{{ $i+1 }}</div>
+                <h3 class="font-extrabold text-gray-900 mb-1.5 text-base">{{ $step['title'] }}</h3>
+                <p class="text-sm text-gray-500 leading-relaxed">{{ $step['desc'] }}</p>
+            </div>
+            @endforeach
+        </div>
+    </div>
+</section>
+
+<!-- ═══════════════════ NEW ARRIVALS ═══════════════════ -->
+@if($newArrivals->count())
+<section class="section-amber py-16">
+    <div class="max-w-7xl mx-auto px-4">
+        <div class="flex items-end justify-between mb-10">
+            <div>
+                <span class="inline-block text-xs font-bold text-amber-700 uppercase tracking-widest bg-amber-200 border border-amber-300 rounded-full px-3 py-1 mb-3">✨ Just Added</span>
+                <h2 class="text-2xl md:text-3xl font-extrabold text-gray-900">New Arrivals</h2>
+                <p class="text-gray-500 mt-1.5 text-sm">Fresh additions to our exclusive collection</p>
+            </div>
+            <a href="{{ route('dresses.new-arrivals') }}" class="hidden md:inline-flex items-center gap-1.5 text-amber-700 font-semibold text-sm hover:text-amber-800 border border-amber-300 bg-amber-100 rounded-xl px-4 py-2 shadow-sm hover:shadow transition-all">
+                View All <svg class="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17 8l4 4m0 0l-4 4m4-4H3"/></svg>
+            </a>
+        </div>
+        <div class="grid grid-cols-2 md:grid-cols-4 gap-5 md:gap-6">
+            @foreach($newArrivals as $dress)
+                @include('components.dress-card', ['dress' => $dress])
+            @endforeach
+        </div>
+    </div>
+</section>
+@endif
+
+<!-- ═══════════════════ CTA BANNER ═══════════════════ -->
+<section class="py-8 px-4">
+    <div class="max-w-5xl mx-auto rounded-3xl gradient-hero text-white overflow-hidden relative">
+        <!-- Decorative circles -->
+        <div class="absolute top-0 right-0 w-64 h-64 bg-white/5 rounded-full -translate-y-1/2 translate-x-1/2 pointer-events-none"></div>
+        <div class="absolute bottom-0 left-0 w-48 h-48 bg-rose-500/20 rounded-full translate-y-1/2 -translate-x-1/2 pointer-events-none"></div>
+
+        <div class="relative px-8 py-14 text-center">
+            <div class="inline-flex items-center gap-2 bg-white/15 border border-white/20 rounded-full px-4 py-1.5 text-sm font-semibold mb-6">
+                🎉 Limited Time Offer
+            </div>
+            <h2 class="text-2xl md:text-4xl font-extrabold mb-4 leading-tight">Ready to Look Stunning?</h2>
+            <p class="text-violet-200 mb-8 max-w-lg mx-auto text-base leading-relaxed">
+                Join thousands of customers renting premium dresses for weddings, parties &amp; every occasion.
+            </p>
+            <div class="flex flex-col sm:flex-row gap-4 justify-center">
+                <a href="{{ route('dresses.index') }}"
+                   class="inline-flex items-center justify-center gap-2 bg-white text-primary-700 font-extrabold px-9 py-4 rounded-2xl hover:bg-amber-50 transition-all shadow-xl text-base">
+                    Explore Dresses
+                    <svg class="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M17 8l4 4m0 0l-4 4m4-4H3"/></svg>
+                </a>
+                @guest
+                <a href="{{ route('register') }}"
+                   class="inline-flex items-center justify-center gap-2 bg-white/15 border-2 border-white/40 text-white font-bold px-9 py-4 rounded-2xl hover:bg-white/25 transition-all text-base">
+                    Create Free Account
+                </a>
+                @endguest
+            </div>
+        </div>
     </div>
 </section>
 

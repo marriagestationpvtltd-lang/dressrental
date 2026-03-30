@@ -21,15 +21,9 @@
                     @error('name') <p class="text-red-500 text-xs mt-1">{{ $message }}</p> @enderror
                 </div>
 
-                <div>
-                    <label class="block text-sm font-medium text-gray-700 mb-1">Category *</label>
-                    <select name="category_id" required class="w-full border border-gray-200 rounded-xl px-4 py-3 focus:ring-2 focus:ring-primary-500 outline-none @error('category_id') border-red-400 @enderror">
-                        <option value="">Select Category</option>
-                        @foreach($categories as $cat)
-                            <option value="{{ $cat->id }}" {{ old('category_id') == $cat->id ? 'selected' : '' }}>{{ $cat->name }}</option>
-                        @endforeach
-                    </select>
-                </div>
+                @include('admin.dresses._category_select', [
+                    'currentCategoryId' => old('category_id'),
+                ])
 
                 <div>
                     <label class="block text-sm font-medium text-gray-700 mb-1">Size *</label>
@@ -87,10 +81,19 @@
                 </div>
 
                 <div class="md:col-span-2">
-                    <label class="block text-sm font-medium text-gray-700 mb-1">Images (select multiple)</label>
-                    <input type="file" name="images[]" multiple accept="image/*"
+                    <label class="block text-sm font-medium text-gray-700 mb-1">
+                        Images (select multiple)
+                        @if(\App\Models\Setting::get('gemini_api_key'))
+                            <span class="ml-2 inline-flex items-center gap-1 text-xs font-normal text-violet-600 bg-violet-50 border border-violet-200 rounded-full px-2 py-0.5">
+                                <svg class="w-3 h-3" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 10V3L4 14h7v7l9-11h-7z"/></svg>
+                                AI analysis available
+                            </span>
+                        @endif
+                    </label>
+                    <input type="file" id="dress-images" name="images[]" multiple accept="image/*"
                            class="w-full border border-gray-200 rounded-xl px-4 py-3 text-sm focus:ring-2 focus:ring-primary-500 outline-none file:mr-3 file:border-0 file:bg-primary-50 file:text-primary-700 file:px-3 file:py-1 file:rounded-lg">
                     <p class="text-xs text-gray-400 mt-1">First image will be set as primary. Max 3MB each. JPG, PNG, WebP.</p>
+                    @include('admin.dresses._ai_generate')
                 </div>
             </div>
 

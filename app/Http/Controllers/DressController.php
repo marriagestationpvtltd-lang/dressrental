@@ -49,6 +49,40 @@ class DressController extends Controller
         return view('dresses.index', compact('dresses', 'categories', 'sizes'));
     }
 
+    public function featured(Request $request)
+    {
+        $query = Dress::with(['images', 'category'])->available()->featured();
+
+        $sort = $request->get('sort', 'latest');
+        match ($sort) {
+            'price_asc'  => $query->orderBy('price_per_day'),
+            'price_desc' => $query->orderByDesc('price_per_day'),
+            'popular'    => $query->orderByDesc('views'),
+            default      => $query->latest(),
+        };
+
+        $dresses = $query->paginate(12)->withQueryString();
+
+        return view('dresses.featured', compact('dresses'));
+    }
+
+    public function newArrivals(Request $request)
+    {
+        $query = Dress::with(['images', 'category'])->available();
+
+        $sort = $request->get('sort', 'latest');
+        match ($sort) {
+            'price_asc'  => $query->orderBy('price_per_day'),
+            'price_desc' => $query->orderByDesc('price_per_day'),
+            'popular'    => $query->orderByDesc('views'),
+            default      => $query->latest(),
+        };
+
+        $dresses = $query->paginate(12)->withQueryString();
+
+        return view('dresses.new-arrivals', compact('dresses'));
+    }
+
     public function show(Dress $dress)
     {
         if ($dress->status === 'unavailable') {
@@ -56,7 +90,30 @@ class DressController extends Controller
         }
 
         $dress->increment('views');
-        $dress->load(['images', 'category']);
+        $dress->load(['images', 'category.parent', 'ornaments']);
+
+        // ── Smart ornament recommendation cascade ─────────────────
+        // Priority 1: ornaments directly attached to this specific dress
+        $directOrnaments = $dress->ornaments()->available()->get();
+
+        // Priority 2: ornaments recommended for the dress's exact category/subcategory
+        // Priority 3: ornaments recommended for the parent category (inherited)
+        $categoryOrnaments = collect();
+        if ($dress->category) {
+            $categoryOrnaments = $dress->category->recommendedOrnaments()->available()->get();
+
+            if ($dress->category->parent_id && $dress->category->parent) {
+                $parentOrnaments   = $dress->category->parent->recommendedOrnaments()->available()->get();
+                $categoryOrnaments = $categoryOrnaments->merge(
+                    $parentOrnaments->whereNotIn('id', $categoryOrnaments->pluck('id'))
+                );
+            }
+        }
+
+        // Merge: dress-specific ornaments first, then category-based (no duplicates)
+        $ornamentRecommendations = $directOrnaments
+            ->merge($categoryOrnaments->whereNotIn('id', $directOrnaments->pluck('id')))
+            ->values();
 
         $recommendations = Dress::with(['images', 'category'])
             ->available()
@@ -77,6 +134,6 @@ class DressController extends Controller
                 'end'   => $b->end_date->format('Y-m-d'),
             ]);
 
-        return view('dresses.show', compact('dress', 'recommendations', 'bookedRanges'));
+        return view('dresses.show', compact('dress', 'recommendations', 'bookedRanges', 'ornamentRecommendations'));
     }
 }

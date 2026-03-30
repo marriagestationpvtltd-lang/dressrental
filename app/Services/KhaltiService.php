@@ -2,6 +2,7 @@
 
 namespace App\Services;
 
+use App\Models\Setting;
 use Illuminate\Support\Facades\Http;
 
 class KhaltiService
@@ -13,10 +14,24 @@ class KhaltiService
 
     public function __construct()
     {
-        $this->secretKey = config('payment.khalti.secret_key');
-        $this->publicKey = config('payment.khalti.public_key');
-        $this->sandbox   = config('payment.khalti.sandbox', true);
-        $this->baseUrl   = $this->sandbox
+        // Prefer database settings; fall back to config / env when not set.
+        $dbSecretKey = Setting::getRaw('khalti_secret_key');
+        $dbPublicKey = Setting::getRaw('khalti_public_key');
+        $dbSandbox   = Setting::getRaw('khalti_sandbox');
+
+        $this->secretKey = ($dbSecretKey !== null && $dbSecretKey !== '')
+            ? $dbSecretKey
+            : config('payment.khalti.secret_key');
+
+        $this->publicKey = ($dbPublicKey !== null && $dbPublicKey !== '')
+            ? $dbPublicKey
+            : config('payment.khalti.public_key');
+
+        $this->sandbox = ($dbSandbox !== null && $dbSandbox !== '')
+            ? filter_var($dbSandbox, FILTER_VALIDATE_BOOLEAN)
+            : config('payment.khalti.sandbox', true);
+
+        $this->baseUrl = $this->sandbox
             ? 'https://a.khalti.com'
             : 'https://khalti.com';
     }

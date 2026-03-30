@@ -28,8 +28,10 @@ class ProductionSeeder extends Seeder
             return;
         }
 
-        // Create admin account only if it does not already exist.
-        User::firstOrCreate(
+        // Create or find the admin account and ensure the role is always 'admin'.
+        // Using firstOrCreate alone would leave an existing user's role unchanged
+        // (e.g. if they previously registered as a regular user).
+        $user = User::firstOrCreate(
             ['email' => $email],
             [
                 'name'     => 'Admin',
@@ -38,5 +40,11 @@ class ProductionSeeder extends Seeder
                 'phone'    => env('ADMIN_PHONE', ''),
             ]
         );
+
+        if ($user->role !== 'admin') {
+            $user->update(['role' => 'admin']);
+        }
+
+        $this->call(SettingsSeeder::class);
     }
 }
