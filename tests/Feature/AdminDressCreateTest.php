@@ -205,4 +205,75 @@ class AdminDressCreateTest extends TestCase
         $this->assertNotNull($dress);
         $this->assertStringContainsString('my-unique-dress', $dress->slug);
     }
+
+    // ── GET /admin/dresses/{dress}/edit ───────────────────────────────────────
+
+    public function test_admin_can_access_edit_page(): void
+    {
+        $dress = Dress::factory()->create();
+
+        $response = $this->actingAs($this->makeAdmin())
+            ->get(route('admin.dresses.edit', $dress));
+
+        $response->assertOk();
+        $response->assertViewIs('admin.dresses.edit');
+        $response->assertViewHas('dress');
+    }
+
+    // ── DELETE /admin/dresses/{dress} ─────────────────────────────────────────
+
+    public function test_admin_can_delete_dress(): void
+    {
+        $admin = $this->makeAdmin();
+        $dress = Dress::factory()->create();
+
+        $response = $this->actingAs($admin)
+            ->delete(route('admin.dresses.destroy', $dress));
+
+        $response->assertRedirect(route('admin.dresses.index'));
+        $this->assertDatabaseMissing('dresses', ['id' => $dress->id]);
+    }
+
+    public function test_admin_can_delete_dress_with_images(): void
+    {
+        Storage::fake('public');
+
+        $admin = $this->makeAdmin();
+        $dress = Dress::factory()->create();
+        $path  = UploadedFile::fake()->image('dress.jpg')->store('dresses', 'public');
+        $dress->images()->create([
+            'image_path' => $path,
+            'is_primary' => true,
+            'sort_order' => 0,
+        ]);
+
+        $response = $this->actingAs($admin)
+            ->delete(route('admin.dresses.destroy', $dress));
+
+        $response->assertRedirect(route('admin.dresses.index'));
+        $this->assertDatabaseMissing('dresses', ['id' => $dress->id]);
+        Storage::disk('public')->assertMissing($path);
+    }
+
+    public function test_guest_cannot_delete_dress(): void
+    {
+        $dress = Dress::factory()->create();
+
+        $response = $this->delete(route('admin.dresses.destroy', $dress));
+
+        $response->assertRedirect(route('login'));
+        $this->assertDatabaseHas('dresses', ['id' => $dress->id]);
+    }
+
+    public function test_regular_user_cannot_delete_dress(): void
+    {
+        $user  = User::factory()->create(['role' => 'user']);
+        $dress = Dress::factory()->create();
+
+        $response = $this->actingAs($user)
+            ->delete(route('admin.dresses.destroy', $dress));
+
+        $response->assertForbidden();
+        $this->assertDatabaseHas('dresses', ['id' => $dress->id]);
+    }
 }
