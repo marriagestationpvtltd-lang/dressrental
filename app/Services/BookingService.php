@@ -35,7 +35,8 @@ class BookingService
         $rentalAmount  = $totalDays * $dress->price_per_day;
         $depositAmount = $dress->deposit_amount;
         $totalAmount   = $rentalAmount + $depositAmount;
-        $advanceAmount = round($totalAmount * 0.5, 2); // 50% advance
+        $advancePercent = setting('advance_payment_percentage', 50);
+        $advanceAmount  = round($totalAmount * ($advancePercent / 100), 2);
 
         return [
             'total_days'     => $totalDays,

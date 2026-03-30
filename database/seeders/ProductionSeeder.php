@@ -38,5 +38,7 @@ class ProductionSeeder extends Seeder
                 'phone'    => env('ADMIN_PHONE', ''),
             ]
         );
+
+        $this->call(SettingsSeeder::class);
     }
 }
