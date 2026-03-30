@@ -6,6 +6,7 @@ use App\Http\Controllers\BookingController;
 use App\Http\Controllers\CategoryController;
 use App\Http\Controllers\DressController;
 use App\Http\Controllers\HomeController;
+use App\Http\Controllers\PageController;
 use App\Http\Controllers\PaymentController;
 use App\Http\Controllers\UserDashboardController;
 use Illuminate\Support\Facades\Route;
@@ -17,6 +18,9 @@ Route::get('/dresses/featured', [DressController::class, 'featured'])->name('dre
 Route::get('/dresses/new-arrivals', [DressController::class, 'newArrivals'])->name('dresses.new-arrivals');
 Route::get('/dresses/{dress:slug}', [DressController::class, 'show'])->name('dresses.show');
 Route::get('/categories/{category:slug}', [CategoryController::class, 'show'])->name('categories.show');
+
+// Static pages (privacy policy, terms & conditions, etc.)
+Route::get('/pages/{slug}', [PageController::class, 'show'])->name('pages.show');
 
 // Availability check (open for AJAX)
 Route::post('/dresses/{dress}/availability', [BookingController::class, 'checkAvailability'])
@@ -80,6 +84,9 @@ Route::middleware(['auth', 'admin'])->prefix('admin')->name('admin.')->group(fun
     // Settings
     Route::get('/settings', [Admin\SettingsController::class, 'index'])->name('settings.index');
     Route::put('/settings', [Admin\SettingsController::class, 'update'])->name('settings.update');
+
+    // Pages
+    Route::resource('pages', Admin\PageController::class)->except(['show']);
 
     // AI
     Route::post('/ai/describe-image', [Admin\AiController::class, 'describeImage'])->name('ai.describe-image');
