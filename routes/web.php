@@ -75,7 +75,7 @@ Route::middleware(['auth', 'admin'])->prefix('admin')->name('admin.')->group(fun
     Route::get('/bookings/{booking}/invoice', [Admin\InvoiceController::class, 'show'])->name('bookings.invoice');
 
     // Payments
-    Route::resource('payments', Admin\PaymentController::class)->only(['index', 'show']);
+    Route::resource('payments', Admin\PaymentController::class)->only(['index', 'show', 'update']);
     Route::post('/payments/{payment}/refund', [Admin\PaymentController::class, 'refund'])->name('payments.refund');
     Route::post('/payments/{payment}/approve', [Admin\PaymentController::class, 'approve'])->name('payments.approve');
 

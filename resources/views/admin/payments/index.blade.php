@@ -44,7 +44,9 @@
         <tbody class="divide-y divide-gray-50">
             @forelse($payments as $payment)
             <tr class="hover:bg-gray-50">
-                <td class="px-5 py-3 text-sm text-gray-500">#{{ $payment->id }}</td>
+                <td class="px-5 py-3 text-sm text-gray-500">
+                    <a href="{{ route('admin.payments.show', $payment) }}" class="text-primary-600 hover:underline">#{{ $payment->id }}</a>
+                </td>
                 <td class="px-5 py-3 text-sm text-gray-900">{{ $payment->user->name }}</td>
                 <td class="px-5 py-3 text-sm text-gray-600 hidden md:table-cell">
                     <a href="{{ route('admin.bookings.show', $payment->booking_id) }}" class="text-primary-600 hover:underline">Booking #{{ $payment->booking_id }}</a>
