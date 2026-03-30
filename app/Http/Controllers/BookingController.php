@@ -2,12 +2,14 @@
 
 namespace App\Http\Controllers;
 
+use App\Mail\BookingConfirmation;
 use App\Models\Booking;
 use App\Models\Dress;
 use App\Services\BookingService;
 use Carbon\Carbon;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
+use Illuminate\Support\Facades\Mail;
 
 class BookingController extends Controller
 {
@@ -49,10 +51,17 @@ class BookingController extends Controller
 
         try {
             $booking = $this->bookingService->createBooking($data);
-            return redirect()->route('payment.initiate', $booking)
-                ->with('success', 'Booking created! Please complete payment.');
         } catch (\Exception $e) {
             return back()->withErrors(['error' => $e->getMessage()])->withInput();
         }
+
+        try {
+            Mail::to($booking->user->email)->send(new BookingConfirmation($booking->load(['dress', 'user'])));
+        } catch (\Exception) {
+            // Non-fatal: booking is created, email delivery failure should not block user flow
+        }
+
+        return redirect()->route('payment.initiate', $booking)
+            ->with('success', 'Booking created! Please complete payment.');
     }
 }
