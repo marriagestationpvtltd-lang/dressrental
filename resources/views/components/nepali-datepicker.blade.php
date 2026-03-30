@@ -46,8 +46,9 @@
                 @click="selectDay(day)"
                 :disabled="isDayBooked(day) || isPastDay(day)"
                 :class="getDayClass(day)"
-                class="relative aspect-square text-xs font-medium transition-colors flex items-center justify-center rounded-lg">
-                <span x-text="toNepali(day)"></span>
+                class="relative aspect-square text-xs font-medium transition-colors flex flex-col items-center justify-center rounded-lg">
+                <span x-text="toNepali(day)" class="leading-none"></span>
+                <span x-text="getAdDay(day)" class="text-[9px] leading-none opacity-60 mt-0.5"></span>
                 <!-- Dot under today's date -->
                 <span x-show="isToday(day)"
                       class="absolute bottom-0.5 left-1/2 -translate-x-1/2 w-1 h-1 bg-amber-400 rounded-full pointer-events-none"></span>
@@ -191,6 +192,7 @@ function nepaliCalendar() {
         },
 
         getAdForDay(day) { return bsToAd(this.currentYear, this.currentMonth, day); },
+        getAdDay(day) { const ad = bsToAd(this.currentYear, this.currentMonth, day); return ad ? ad.getDate() : ''; },
 
         isToday(day) {
             return this.currentYear  === TODAY_BS.year  &&
