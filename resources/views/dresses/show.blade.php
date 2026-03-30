@@ -35,6 +35,7 @@
         <div class="grid grid-cols-1 lg:grid-cols-2 gap-8 lg:gap-12">
 
             <!-- ── Images Gallery ── -->
+            <div class="flex flex-col gap-4">
             <div x-data="{ activeImg: '{{ $dress->primaryImage() ? $dress->primaryImage()->url : '' }}' }">
                 <div class="aspect-square rounded-3xl overflow-hidden bg-gradient-to-br from-violet-50 to-pink-50 mb-4 border border-violet-100 shadow-card relative group">
                     @if($dress->primaryImage())
@@ -60,6 +61,46 @@
                 </div>
                 @endif
             </div>
+
+            <!-- ── Recommended Accessories (compact) ── -->
+            @if($ornamentRecommendations->count())
+            <div class="bg-white rounded-2xl border border-violet-100 shadow-sm p-4">
+                <div class="flex items-center gap-2 mb-3">
+                    <span class="w-5 h-5 gradient-bg rounded-lg flex items-center justify-center flex-shrink-0">
+                        <svg class="w-3 h-3 text-white" fill="currentColor" viewBox="0 0 20 20"><path d="M5 3a2 2 0 00-2 2v2a2 2 0 002 2h2a2 2 0 002-2V5a2 2 0 00-2-2H5zM5 11a2 2 0 00-2 2v2a2 2 0 002 2h2a2 2 0 002-2v-2a2 2 0 00-2-2H5zM11 5a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2h-2a2 2 0 01-2-2V5zM14 11a1 1 0 011 1v1h1a1 1 0 110 2h-1v1a1 1 0 11-2 0v-1h-1a1 1 0 110-2h1v-1a1 1 0 011-1z"/></svg>
+                    </span>
+                    <div>
+                        <h3 class="text-sm font-bold text-gray-800">Recommended Accessories</h3>
+                        <p class="text-xs text-gray-400">Complete the look</p>
+                    </div>
+                </div>
+                <div class="grid grid-cols-3 gap-2">
+                    @foreach($ornamentRecommendations->take(6) as $ornament)
+                    <div class="group bg-gray-50 border border-violet-100 rounded-xl overflow-hidden hover:border-fuchsia-300 hover:shadow-sm transition-all"
+                         role="group"
+                         aria-label="{{ $ornament->name }} — ₨{{ number_format($ornament->price_per_day) }} per day">
+                        <div class="aspect-square bg-gradient-to-br from-fuchsia-50 to-pink-50 overflow-hidden relative">
+                            <img src="{{ $ornament->image_url }}"
+                                 alt="{{ $ornament->name }}"
+                                 class="w-full h-full object-cover transition-transform duration-300 group-hover:scale-105">
+                            <span class="absolute top-1 left-1 bg-white/90 text-fuchsia-700 text-[10px] font-semibold px-1.5 py-0.5 rounded-full border border-fuchsia-100 leading-none"
+                                  aria-label="{{ \App\Models\Ornament::categoryLabel($ornament->category) }}">
+                                {{ \App\Models\Ornament::categoryLabel($ornament->category) }}
+                            </span>
+                        </div>
+                        <div class="p-1.5">
+                            <p class="text-xs font-semibold text-gray-800 truncate leading-tight" title="{{ $ornament->name }}">{{ $ornament->name }}</p>
+                            <p class="text-xs text-primary-600 font-bold mt-0.5">₨{{ number_format($ornament->price_per_day) }}<span class="text-gray-400 font-normal">/d</span></p>
+                        </div>
+                    </div>
+                    @endforeach
+                </div>
+                @if($ornamentRecommendations->count() > 6)
+                <p class="text-xs text-gray-400 text-center mt-2">+{{ $ornamentRecommendations->count() - 6 }} more accessories available</p>
+                @endif
+            </div>
+            @endif
+            </div>{{-- end of left column wrapper --}}
 
         <!-- Dress Details + Booking -->
         <div>
@@ -274,142 +315,6 @@
                 @endif
             </div>
         </div>
-
-        <!-- ── Ornament Recommendations ── -->
-        @if($ornamentRecommendations->count())
-        <section class="mt-16 pt-10 border-t-2 border-dashed border-violet-100"
-            x-data="{
-                current: 0,
-                perPage: 4,
-                total: {{ $ornamentRecommendations->count() }},
-                autoTimer: null,
-                resizeTimer: null,
-                get maxSlide() { return Math.max(0, this.total - this.perPage); },
-                get dotCount() { return this.maxSlide + 1; },
-                next() { this.current = this.current >= this.maxSlide ? 0 : this.current + 1; },
-                prev() { this.current = this.current <= 0 ? this.maxSlide : this.current - 1; },
-                startAuto() { clearInterval(this.autoTimer); this.autoTimer = setInterval(() => this.next(), 3200); },
-                stopAuto() { clearInterval(this.autoTimer); },
-                init() {
-                    this.perPage = window.innerWidth < 768 ? 2 : 4;
-                    window.addEventListener('resize', () => {
-                        clearTimeout(this.resizeTimer);
-                        this.resizeTimer = setTimeout(() => {
-                            this.perPage = window.innerWidth < 768 ? 2 : 4;
-                            this.current = Math.min(this.current, this.maxSlide);
-                        }, 150);
-                    });
-                    this.startAuto();
-                }
-            }"
-            @mouseenter="stopAuto()"
-            @mouseleave="startAuto()">
-
-            <!-- Header & navigation arrows -->
-            <div class="flex items-end justify-between mb-8">
-                <div>
-                    <span class="inline-block text-xs font-bold text-fuchsia-600 uppercase tracking-widest bg-fuchsia-50 border border-fuchsia-200 rounded-full px-3 py-1 mb-2">Complete the Look</span>
-                    <h2 class="text-xl md:text-2xl font-extrabold text-gray-900">Recommended Accessories</h2>
-                    <p class="text-sm text-gray-500 mt-1">These ornaments and accessories go perfectly with this dress</p>
-                </div>
-                <div class="flex items-center gap-2 flex-shrink-0">
-                    <button @click="prev()"
-                            class="w-9 h-9 flex items-center justify-center rounded-full border-2 border-violet-200 bg-white text-violet-600 hover:bg-violet-600 hover:text-white hover:border-violet-600 transition-all shadow-sm">
-                        <svg class="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 19l-7-7 7-7"/>
-                        </svg>
-                    </button>
-                    <button @click="next()"
-                            class="w-9 h-9 flex items-center justify-center rounded-full border-2 border-violet-200 bg-white text-violet-600 hover:bg-violet-600 hover:text-white hover:border-violet-600 transition-all shadow-sm">
-                        <svg class="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7"/>
-                        </svg>
-                    </button>
-                </div>
-            </div>
-
-            <!-- Slider track -->
-            <div class="overflow-hidden">
-                <div class="flex transition-transform duration-500 ease-in-out"
-                     :style="`transform: translateX(-${current * (100 / perPage)}%)`">
-                    @foreach($ornamentRecommendations as $ornament)
-                    <div class="flex-shrink-0 px-2"
-                         :style="`width: ${100 / perPage}%`"
-                     x-data="{
-                             hovered: false,
-                             zoomStyle: '',
-                             zoomW: 260,
-                             zoomH: 260,
-                             zoomGap: 12,
-                             showZoom(el) {
-                                 const rect = el.getBoundingClientRect();
-                                 const fitsRight = rect.right + this.zoomGap + this.zoomW <= window.innerWidth;
-                                 const left = fitsRight ? rect.right + this.zoomGap : rect.left - this.zoomW - this.zoomGap;
-                                 const top = Math.max(this.zoomGap, Math.min(rect.top, window.innerHeight - this.zoomH - this.zoomGap));
-                                 this.zoomStyle = `top:${top}px;left:${left}px;width:${this.zoomW}px;height:${this.zoomH}px;`;
-                                 this.hovered = true;
-                             }
-                         }"
-                         @mouseenter="showZoom($el)"
-                         @mouseleave="hovered = false">
-
-                        <!-- Card -->
-                        <div class="bg-white rounded-2xl border-2 border-violet-200 shadow-md overflow-hidden group transition-all hover:shadow-xl hover:border-fuchsia-400 hover:-translate-y-1 duration-300">
-                            <div class="aspect-square bg-gradient-to-br from-fuchsia-50 to-pink-50 relative overflow-hidden border-b-2 border-violet-100">
-                                <img src="{{ $ornament->image_url }}"
-                                     alt="{{ $ornament->name }}"
-                                     class="w-full h-full object-cover transition-transform duration-300 group-hover:scale-105">
-                                <span class="absolute top-2 left-2 bg-fuchsia-100 text-fuchsia-700 text-xs font-bold px-2 py-0.5 rounded-full border border-fuchsia-200">
-                                    {{ \App\Models\Ornament::categoryLabel($ornament->category) }}
-                                </span>
-                            </div>
-                            <div class="p-3">
-                                <h3 class="font-bold text-gray-900 text-sm leading-tight mb-1 truncate">{{ $ornament->name }}</h3>
-                                @if($ornament->description)
-                                    <p class="text-xs text-gray-500 line-clamp-2 mb-2">{{ $ornament->description }}</p>
-                                @endif
-                                <div class="flex items-center justify-between">
-                                    <span class="text-primary-600 font-extrabold text-sm">₨{{ number_format($ornament->price_per_day) }}<span class="text-gray-400 font-normal text-xs">/day</span></span>
-                                    @if($ornament->deposit_amount > 0)
-                                        <span class="text-xs text-gray-400">+₨{{ number_format($ornament->deposit_amount) }} dep.</span>
-                                    @endif
-                                </div>
-                            </div>
-                        </div>
-
-                        <!-- Full-resolution zoom overlay (fixed so it escapes overflow:hidden) -->
-                        <div x-show="hovered"
-                             :style="zoomStyle"
-                             class="fixed z-50 pointer-events-none"
-                             x-transition:enter="transition ease-out duration-200"
-                             x-transition:enter-start="opacity-0 scale-90"
-                             x-transition:enter-end="opacity-100 scale-100"
-                             x-transition:leave="transition ease-in duration-150"
-                             x-transition:leave-start="opacity-100 scale-100"
-                             x-transition:leave-end="opacity-0 scale-90"
-                             style="display:none;">
-                            <div class="w-full h-full rounded-2xl overflow-hidden border-4 border-violet-400 shadow-2xl bg-white ring-2 ring-violet-200 ring-offset-2">
-                                <img src="{{ $ornament->image_url }}"
-                                     alt="{{ $ornament->name }}"
-                                     class="w-full h-full object-contain p-2">
-                            </div>
-                        </div>
-                    </div>
-                    @endforeach
-                </div>
-            </div>
-
-            <!-- Indicator dots -->
-            <div class="flex justify-center gap-1.5 mt-5">
-                <template x-for="i in dotCount" :key="i">
-                    <button @click="current = i - 1"
-                            class="h-2 rounded-full transition-all duration-300"
-                            :class="current === i - 1 ? 'w-5 bg-violet-600' : 'w-2 bg-violet-200 hover:bg-violet-400'">
-                    </button>
-                </template>
-            </div>
-        </section>
-        @endif
 
         <!-- ── Recommendations ── -->
         @if($recommendations->count())
