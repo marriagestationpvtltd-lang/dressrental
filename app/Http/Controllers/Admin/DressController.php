@@ -37,8 +37,12 @@ class DressController extends Controller
 
     public function create()
     {
-        $categories = DressCategory::where('is_active', true)->get();
-        $sizes      = ['XS', 'S', 'M', 'L', 'XL', 'XXL', 'Free Size'];
+        $categories = DressCategory::topLevel()
+            ->where('is_active', true)
+            ->with('activeSubcategories')
+            ->orderBy('sort_order')
+            ->get();
+        $sizes = ['XS', 'S', 'M', 'L', 'XL', 'XXL', 'Free Size'];
         return view('admin.dresses.create', compact('categories', 'sizes'));
     }
 
@@ -82,11 +86,14 @@ class DressController extends Controller
 
     public function edit(Dress $dress)
     {
-        $dress->load(['images', 'ornaments']);
-        $categories = DressCategory::where('is_active', true)->get();
-        $sizes      = ['XS', 'S', 'M', 'L', 'XL', 'XXL', 'Free Size'];
-        $ornaments  = Ornament::orderBy('name')->get();
-        return view('admin.dresses.edit', compact('dress', 'categories', 'sizes', 'ornaments'));
+        $dress->load('images');
+        $categories = DressCategory::topLevel()
+            ->where('is_active', true)
+            ->with('activeSubcategories')
+            ->orderBy('sort_order')
+            ->get();
+        $sizes = ['XS', 'S', 'M', 'L', 'XL', 'XXL', 'Free Size'];
+        return view('admin.dresses.edit', compact('dress', 'categories', 'sizes'));
     }
 
     public function update(Request $request, Dress $dress)
