@@ -104,8 +104,9 @@
 
                 <div class="md:col-span-2">
                     <label class="block text-sm font-medium text-gray-700 mb-1">Add More Images</label>
-                    <input type="file" name="images[]" multiple accept="image/*"
+                    <input type="file" id="dress-images" name="images[]" multiple accept="image/*"
                            class="w-full border border-gray-200 rounded-xl px-4 py-3 text-sm focus:ring-2 focus:ring-primary-500 outline-none file:mr-3 file:border-0 file:bg-primary-50 file:text-primary-700 file:px-3 file:py-1 file:rounded-lg">
+                    @include('admin.dresses._ai_generate')
                 </div>
             </div>
 
