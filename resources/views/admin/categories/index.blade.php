@@ -41,6 +41,7 @@
                 </td>
                 <td class="px-5 py-3 text-right">
                     <div class="flex items-center justify-end gap-2">
+                        <a href="{{ route('admin.categories.ornaments.manage', $cat) }}" class="text-fuchsia-500 hover:text-fuchsia-700 text-sm font-medium">Ornaments</a>
                         <a href="{{ route('admin.categories.edit', $cat) }}" class="text-blue-500 hover:text-blue-700 text-sm font-medium">Edit</a>
                         <form method="POST" action="{{ route('admin.categories.destroy', $cat) }}" onsubmit="return confirm('Delete this category?')">
                             @csrf @method('DELETE')
@@ -70,6 +71,7 @@
                 </td>
                 <td class="px-5 py-2.5 text-right">
                     <div class="flex items-center justify-end gap-2">
+                        <a href="{{ route('admin.categories.ornaments.manage', $sub) }}" class="text-fuchsia-500 hover:text-fuchsia-700 text-sm font-medium">Ornaments</a>
                         <a href="{{ route('admin.categories.edit', $sub) }}" class="text-blue-500 hover:text-blue-700 text-sm font-medium">Edit</a>
                         <form method="POST" action="{{ route('admin.categories.destroy', $sub) }}" onsubmit="return confirm('Delete this subcategory?')">
                             @csrf @method('DELETE')

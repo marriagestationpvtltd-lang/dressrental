@@ -5,6 +5,7 @@ namespace App\Models;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
+use Illuminate\Database\Eloquent\Relations\BelongsToMany;
 use Illuminate\Database\Eloquent\Relations\HasMany;
 
 class DressCategory extends Model
@@ -55,6 +56,16 @@ class DressCategory extends Model
     public function activeDresses(): HasMany
     {
         return $this->hasMany(Dress::class, 'category_id')->where('status', 'available');
+    }
+
+    public function recommendedOrnaments(): BelongsToMany
+    {
+        return $this->belongsToMany(
+            Ornament::class,
+            'category_ornament_recommendations',
+            'dress_category_id',
+            'ornament_id'
+        )->withPivot('sort_order')->orderByPivot('sort_order');
     }
 
     // ── Scopes ───────────────────────────────────────────────────

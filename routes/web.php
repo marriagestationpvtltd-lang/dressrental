@@ -83,6 +83,10 @@ Route::middleware(['auth', 'admin'])->prefix('admin')->name('admin.')->group(fun
 
     // Categories
     Route::resource('categories', Admin\CategoryController::class);
+    Route::get('/categories/{category}/ornaments', [Admin\CategoryOrnamentController::class, 'manage'])->name('categories.ornaments.manage');
+    Route::post('/categories/{category}/ornaments', [Admin\CategoryOrnamentController::class, 'store'])->name('categories.ornaments.store');
+    Route::delete('/categories/{category}/ornaments/{ornament}', [Admin\CategoryOrnamentController::class, 'destroy'])->name('categories.ornaments.destroy');
+    Route::post('/categories/{category}/ornaments/reorder', [Admin\CategoryOrnamentController::class, 'reorder'])->name('categories.ornaments.reorder');
 
     // Ornaments
     Route::resource('ornaments', Admin\OrnamentController::class);

@@ -10,6 +10,12 @@
         <h1 class="text-2xl font-bold text-gray-900">Edit: {{ $category->name }}</h1>
     </div>
 
+    <a href="{{ route('admin.categories.ornaments.manage', $category) }}"
+       class="inline-flex items-center gap-2 mb-5 text-sm font-medium text-fuchsia-600 hover:text-fuchsia-800 bg-fuchsia-50 border border-fuchsia-200 px-4 py-2 rounded-xl">
+        <svg class="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 6v6m0 0v6m0-6h6m-6 0H6"/></svg>
+        Manage Ornament Recommendations
+    </a>
+
     <div class="bg-white rounded-2xl shadow-sm border border-gray-100 p-6">
         <form method="POST" action="{{ route('admin.categories.update', $category) }}">
             @csrf @method('PUT')
