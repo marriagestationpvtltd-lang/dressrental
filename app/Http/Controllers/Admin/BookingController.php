@@ -63,9 +63,14 @@ class BookingController extends Controller
             $data['returned_at'] = now();
         }
 
-        // Recalculate total_amount when discount is updated
-        $discountType   = $data['discount_type']   ?? $booking->discount_type;
-        $discountAmount = $data['discount_amount']  ?? $booking->discount_amount;
+        // Recalculate total_amount when discount is updated.
+        // Resolve nullable fields so non-nullable DB columns never receive NULL.
+        $data['fine_amount']     = $data['fine_amount']     ?? $booking->fine_amount     ?? 0;
+        $data['discount_type']   = $data['discount_type']   ?? $booking->discount_type   ?? 'none';
+        $data['discount_amount'] = $data['discount_amount'] ?? $booking->discount_amount ?? 0;
+
+        $discountType   = $data['discount_type'];
+        $discountAmount = $data['discount_amount'];
         $baseAmount     = $booking->rental_amount + $booking->deposit_amount;
 
         if ($discountType === 'percentage') {
