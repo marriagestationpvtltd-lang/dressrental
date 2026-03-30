@@ -184,8 +184,10 @@
                     <form method="POST" action="{{ route('bookings.store') }}"
                           x-data="bookingForm()"
                           @submit.prevent="submitBooking($el)"
-                          @dates-selected="startDate = $event.detail.startAd; endDate = $event.detail.endAd; checkAvailability()"
-                          @dates-cleared="startDate = ''; endDate = ''; available = null; amounts = null;">
+                          @dates-selected="startDate = $event.detail.startAd; endDate = $event.detail.endAd; checkAvailability(); calendarOpen = false"
+                          @dates-cleared="startDate = ''; endDate = ''; available = null; amounts = null; startBsDate = ''; endBsDate = ''; calendarOpen = false"
+                          @bs-start-selected="startBsDate = $event.detail.bs"
+                          @bs-end-selected="endBsDate = $event.detail.bs">
                         @csrf
                         <input type="hidden" name="dress_id" value="{{ $dress->id }}">
                         <input type="hidden" name="start_date" x-model="startDate">
@@ -195,22 +197,60 @@
                         <div class="mb-5">
                             <div class="flex gap-2 mb-4 p-1 bg-gray-100 rounded-xl border border-gray-200">
                                 <button type="button"
-                                        @click="calendarMode = 'bs'; startDate = ''; endDate = ''; available = null; amounts = null;"
+                                        @click="calendarMode = 'bs'; startDate = ''; endDate = ''; available = null; amounts = null; startBsDate = ''; endBsDate = ''; calendarOpen = false"
                                         :class="calendarMode === 'bs' ? 'gradient-bg text-white shadow-sm' : 'text-gray-600 hover:text-gray-800'"
                                         class="flex-1 py-2.5 rounded-lg text-sm font-bold transition-all flex items-center justify-center gap-1.5">
                                     📅 नेपाली (BS)
                                 </button>
                                 <button type="button"
-                                        @click="calendarMode = 'ad'; startDate = ''; endDate = ''; available = null; amounts = null;"
+                                        @click="calendarMode = 'ad'; startDate = ''; endDate = ''; available = null; amounts = null; startBsDate = ''; endBsDate = ''; calendarOpen = false"
                                         :class="calendarMode === 'ad' ? 'gradient-bg text-white shadow-sm' : 'text-gray-600 hover:text-gray-800'"
                                         class="flex-1 py-2.5 rounded-lg text-sm font-bold transition-all flex items-center justify-center gap-1.5">
                                     📅 English (AD)
                                 </button>
                             </div>
 
-                            <!-- BS Calendar -->
-                            <div x-show="calendarMode === 'bs'" class="bg-gray-50 rounded-2xl border border-violet-100 overflow-hidden">
-                                @include('components.nepali-datepicker')
+                            <!-- BS Calendar (popup triggered by date inputs) -->
+                            <div x-show="calendarMode === 'bs'" class="relative" @click.outside="calendarOpen = false">
+                                <!-- Date display / trigger inputs -->
+                                <div class="grid grid-cols-1 sm:grid-cols-2 gap-3">
+                                    <div>
+                                        <label class="block text-xs font-bold text-gray-500 uppercase tracking-wider mb-1.5">सुरु मिति (BS)</label>
+                                        <div @click="calendarOpen = !calendarOpen"
+                                             :class="calendarOpen ? 'border-primary-400 ring-2 ring-primary-200' : 'border-violet-200 hover:border-primary-300'"
+                                             class="w-full bg-violet-50/50 rounded-xl px-3 py-2.5 text-sm cursor-pointer flex items-center gap-2 transition-colors border">
+                                            <svg class="w-4 h-4 text-gray-400 flex-shrink-0" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z"/>
+                                            </svg>
+                                            <span :class="startBsDate ? 'text-gray-800' : 'text-gray-400'"
+                                                  x-text="startBsDate ? formatBsDate(startBsDate) : 'सुरु मिति छान्नुहोस्'"></span>
+                                        </div>
+                                    </div>
+                                    <div>
+                                        <label class="block text-xs font-bold text-gray-500 uppercase tracking-wider mb-1.5">अन्त्य मिति (BS)</label>
+                                        <div @click="calendarOpen = !calendarOpen"
+                                             :class="calendarOpen ? 'border-primary-400 ring-2 ring-primary-200' : 'border-violet-200 hover:border-primary-300'"
+                                             class="w-full bg-violet-50/50 rounded-xl px-3 py-2.5 text-sm cursor-pointer flex items-center gap-2 transition-colors border">
+                                            <svg class="w-4 h-4 text-gray-400 flex-shrink-0" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z"/>
+                                            </svg>
+                                            <span :class="endBsDate ? 'text-gray-800' : 'text-gray-400'"
+                                                  x-text="endBsDate ? formatBsDate(endBsDate) : 'अन्त्य मिति छान्नुहोस्'"></span>
+                                        </div>
+                                    </div>
+                                </div>
+
+                                <!-- Calendar popup -->
+                                <div x-show="calendarOpen"
+                                     x-transition:enter="transition ease-out duration-100"
+                                     x-transition:enter-start="opacity-0 -translate-y-1"
+                                     x-transition:enter-end="opacity-100 translate-y-0"
+                                     x-transition:leave="transition ease-in duration-75"
+                                     x-transition:leave-start="opacity-100 translate-y-0"
+                                     x-transition:leave-end="opacity-0 -translate-y-1"
+                                     class="absolute z-50 left-0 right-0 top-full mt-1 bg-white rounded-2xl border border-violet-200 shadow-xl overflow-hidden">
+                                    @include('components.nepali-datepicker')
+                                </div>
                             </div>
 
                             <!-- AD Date pickers -->
@@ -343,10 +383,19 @@ function bookingForm() {
     return {
         startDate: '',
         endDate: '',
-        calendarMode: 'ad',
+        startBsDate: '',
+        endBsDate: '',
+        calendarMode: 'bs',
+        calendarOpen: false,
         checking: false,
         available: null,
         amounts: null,
+        // Converts ASCII digits in a BS date string (e.g. "2082-01-15") to Devanagari numerals
+        formatBsDate(bsStr) {
+            if (!bsStr) return '';
+            const digits = ['०','१','२','३','४','५','६','७','८','९'];
+            return bsStr.replace(/[0-9]/g, d => digits[d]);
+        },
         async checkAvailability() {
             if (!this.startDate || !this.endDate) return;
             this.checking = true;
