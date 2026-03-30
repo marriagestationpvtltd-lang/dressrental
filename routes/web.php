@@ -72,5 +72,8 @@ Route::middleware(['auth', 'admin'])->prefix('admin')->name('admin.')->group(fun
     // Settings
     Route::get('/settings', [Admin\SettingsController::class, 'index'])->name('settings.index');
     Route::put('/settings', [Admin\SettingsController::class, 'update'])->name('settings.update');
+
+    // AI
+    Route::post('/ai/describe-image', [Admin\AiController::class, 'describeImage'])->name('ai.describe-image');
 });
 
