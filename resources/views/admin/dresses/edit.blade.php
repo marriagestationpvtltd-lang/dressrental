@@ -17,7 +17,7 @@
         <div class="grid grid-cols-4 gap-3">
             @foreach($dress->images as $img)
             <div class="relative group">
-                <img src="{{ asset('storage/' . $img->image_path) }}" alt="" class="aspect-square rounded-xl object-cover w-full {{ $img->is_primary ? 'ring-2 ring-primary-500' : '' }}">
+                <img src="{{ $img->url }}" alt="" class="aspect-square rounded-xl object-cover w-full {{ $img->is_primary ? 'ring-2 ring-primary-500' : '' }}">
                 @if($img->is_primary)<span class="absolute top-1 left-1 bg-primary-500 text-white text-xs px-1.5 py-0.5 rounded-full">Primary</span>@endif
                 <form method="POST" action="{{ route('admin.dresses.images.destroy', $img) }}" class="absolute top-1 right-1" onsubmit="return confirm('Delete?')">
                     @csrf @method('DELETE')
