@@ -99,6 +99,9 @@ Route::middleware(['auth', 'admin'])->prefix('admin')->name('admin.')->group(fun
     // Pages
     Route::resource('pages', Admin\PageController::class)->except(['show']);
 
+    // Banners (Hero Slider)
+    Route::resource('banners', Admin\BannerController::class)->except(['show']);
+
     // AI
     Route::post('/ai/describe-image', [Admin\AiController::class, 'describeImage'])->name('ai.describe-image');
 });

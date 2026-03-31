@@ -31,6 +31,54 @@
     max-height: 80vh;
     overflow: hidden;
 }
+
+/* ── Hero Banner Slider ── */
+.hero-slider {
+    position: relative;
+}
+.hero-slider-item {
+    position: absolute;
+    inset: 0;
+    width: 100%;
+    height: 100%;
+    opacity: 0;
+    transition: opacity 0.8s ease, transform 0.7s cubic-bezier(0.25,0.46,0.45,0.94);
+    pointer-events: none;
+}
+.hero-slider-item.active {
+    opacity: 1;
+    pointer-events: auto;
+    z-index: 1;
+}
+/* slide animation: items coming in from right */
+.hero-slider[data-animation="slide"] .hero-slider-item {
+    transform: translateX(100%);
+    opacity: 1;
+}
+.hero-slider[data-animation="slide"] .hero-slider-item.active {
+    transform: translateX(0);
+}
+.hero-slider[data-animation="slide"] .hero-slider-item.leaving {
+    transform: translateX(-100%);
+    z-index: 0;
+}
+/* zoom animation */
+.hero-slider[data-animation="zoom"] .hero-slider-item {
+    transform: scale(1.07);
+    opacity: 0;
+}
+.hero-slider[data-animation="zoom"] .hero-slider-item.active {
+    opacity: 1;
+    transform: scale(1);
+}
+
+/* ── Footer Dress Slider ── */
+.footer-slider-track {
+    display: flex;
+    gap: 0.75rem;
+    transition: transform 0.6s cubic-bezier(0.25, 0.46, 0.45, 0.94);
+    will-change: transform;
+}
 </style>
 @endpush
 
@@ -43,6 +91,102 @@
     <div class="absolute -bottom-16 -right-16 w-80 h-80 bg-rose-500/20 rounded-full blur-3xl pointer-events-none"></div>
     <div class="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[600px] h-[600px] bg-primary-700/20 rounded-full blur-3xl pointer-events-none"></div>
 
+    @if($heroBanners->count())
+    {{-- ── Dynamic layout when banners are present ── --}}
+    <div class="relative max-w-7xl mx-auto px-4 py-14 md:py-20">
+        <div class="flex flex-col lg:flex-row items-center gap-10 lg:gap-16">
+
+            {{-- Text content --}}
+            <div class="flex-1 text-center lg:text-left">
+                <div class="inline-flex items-center gap-2 bg-white/15 backdrop-blur-sm border border-white/20 rounded-full px-5 py-2 text-sm font-semibold mb-8 shadow-lg">
+                    <span class="w-2 h-2 bg-amber-400 rounded-full animate-pulse"></span>
+                    Nepal's #1 Dress Rental Platform
+                </div>
+                <h1 class="text-3xl sm:text-4xl md:text-5xl xl:text-6xl font-extrabold mb-6 leading-[1.1] tracking-tight">
+                    Rent · Wear · Return
+                    <span class="block mt-2 text-amber-300 drop-shadow-lg">Look Stunning Always</span>
+                </h1>
+                <p class="text-base md:text-lg text-violet-200 mb-10 max-w-xl mx-auto lg:mx-0 leading-relaxed">
+                    Browse premium dresses. Book with the Nepali calendar. Pay with eSewa &amp; Khalti — seamlessly.
+                </p>
+                <div class="flex flex-col sm:flex-row gap-4 justify-center lg:justify-start">
+                    <a href="{{ route('dresses.index') }}"
+                       class="inline-flex items-center justify-center gap-2 bg-white text-primary-700 font-extrabold px-9 py-4 rounded-2xl hover:bg-amber-50 transition-all shadow-xl text-base md:text-lg">
+                        Browse Dresses
+                        <svg class="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M17 8l4 4m0 0l-4 4m4-4H3"/></svg>
+                    </a>
+                    @guest
+                        <a href="{{ route('register') }}"
+                           class="inline-flex items-center justify-center gap-2 bg-white/15 border-2 border-white/50 text-white font-bold px-9 py-4 rounded-2xl hover:bg-white/25 transition-all text-base md:text-lg backdrop-blur-sm">
+                            Get Started Free
+                        </a>
+                    @endguest
+                </div>
+            </div>
+
+            {{-- Media slider --}}
+            <div class="flex-1 w-full max-w-xl lg:max-w-none"
+                 x-data="heroSlider({{ $heroBanners->count() }}, {{ (int) setting('hero_slider_interval', 5000) }}, '{{ setting('hero_slider_animation', 'slide') }}')"
+                 x-init="init()"
+                 @mouseenter="pause()" @mouseleave="resume()">
+
+                <div class="hero-slider relative rounded-2xl overflow-hidden shadow-2xl"
+                     style="aspect-ratio: 16/9;"
+                     data-animation="{{ setting('hero_slider_animation', 'slide') }}">
+
+                    @foreach($heroBanners as $i => $banner)
+                    <div class="hero-slider-item w-full h-full {{ $i === 0 ? 'active' : '' }}"
+                         :class="{ 'active': current === {{ $i }}, 'leaving': leaving === {{ $i }} }">
+
+                        @if($banner->media_type === 'youtube')
+                            <iframe
+                                src="{{ $banner->youtube_embed_url }}"
+                                class="w-full h-full"
+                                frameborder="0"
+                                allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
+                                allowfullscreen
+                                title="{{ $banner->title ?? 'Banner video' }}"
+                                loading="lazy">
+                            </iframe>
+                        @else
+                            <img src="{{ $banner->image_url }}"
+                                 alt="{{ $banner->title ?? 'Banner' }}"
+                                 class="w-full h-full object-cover"
+                                 loading="{{ $i === 0 ? 'eager' : 'lazy' }}">
+                        @endif
+                    </div>
+                    @endforeach
+
+                    {{-- Prev / Next controls --}}
+                    @if($heroBanners->count() > 1)
+                    <button @click="prev()"
+                            class="absolute left-3 top-1/2 -translate-y-1/2 w-9 h-9 bg-black/40 hover:bg-black/60 rounded-full flex items-center justify-center text-white transition-colors z-10"
+                            aria-label="Previous banner">
+                        <svg class="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 19l-7-7 7-7"/></svg>
+                    </button>
+                    <button @click="next()"
+                            class="absolute right-3 top-1/2 -translate-y-1/2 w-9 h-9 bg-black/40 hover:bg-black/60 rounded-full flex items-center justify-center text-white transition-colors z-10"
+                            aria-label="Next banner">
+                        <svg class="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7"/></svg>
+                    </button>
+
+                    {{-- Dot indicators --}}
+                    <div class="absolute bottom-3 left-1/2 -translate-x-1/2 flex gap-1.5 z-10">
+                        @foreach($heroBanners as $i => $banner)
+                        <button @click="goTo({{ $i }})"
+                                :class="current === {{ $i }} ? 'w-6 bg-white' : 'w-2 bg-white/50'"
+                                class="h-2 rounded-full transition-all duration-300"
+                                aria-label="Go to banner {{ $i + 1 }}">
+                        </button>
+                        @endforeach
+                    </div>
+                    @endif
+                </div>
+            </div>
+        </div>
+    </div>
+    @else
+    {{-- ── Static hero (no banners configured) ── --}}
     <div class="relative max-w-7xl mx-auto px-4 py-24 md:py-36">
         <div class="text-center max-w-3xl mx-auto">
             <!-- Badge -->
@@ -75,6 +219,7 @@
             </div>
         </div>
     </div>
+    @endif
 
     <!-- Wave divider -->
     <div class="relative h-8 md:h-12 overflow-hidden">
@@ -458,6 +603,38 @@ function featuredSlider() {
             this.trackOffset = this.baseOffset;
             this.resumeAutoplay();
         },
+    };
+}
+
+function heroSlider(total, interval, animation) {
+    return {
+        current: 0,
+        leaving: -1,
+        total: total,
+        timer: null,
+
+        init() {
+            if (this.total > 1) this.startAutoplay();
+        },
+
+        startAutoplay() {
+            this.timer = setInterval(() => this.next(), interval);
+        },
+
+        pause() { clearInterval(this.timer); this.timer = null; },
+
+        resume() { if (!this.timer && this.total > 1) this.startAutoplay(); },
+
+        goTo(idx) {
+            if (idx === this.current) return;
+            this.leaving = this.current;
+            this.current = idx;
+            setTimeout(() => { this.leaving = -1; }, 800);
+            this.pause(); this.resume();
+        },
+
+        next() { this.goTo((this.current + 1) % this.total); },
+        prev() { this.goTo((this.current - 1 + this.total) % this.total); },
     };
 }
 </script>

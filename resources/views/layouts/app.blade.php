@@ -198,6 +198,41 @@
     <footer class="hidden md:block mt-16" style="background: linear-gradient(180deg,#1e1b4b 0%,#0f172a 100%);">
         <!-- Top accent border -->
         <div class="h-1 gradient-bg"></div>
+
+        {{-- Dress photo slider strip (only when footer dresses are available) --}}
+        @isset($footerDresses)
+        @if($footerDresses->count())
+        @php
+            $fAnimation = setting('footer_slider_animation', 'slide');
+            $fInterval  = (int) setting('footer_slider_interval', 3000);
+        @endphp
+        <div class="border-b border-white/8"
+             x-data="footerSlider({{ $footerDresses->count() }}, {{ $fInterval }})"
+             x-init="init()"
+             @mouseenter="pause()" @mouseleave="resume()">
+            <div class="relative overflow-hidden">
+                <div class="footer-slider-track flex py-3 px-2"
+                     :style="'transform: translateX(' + offset + 'px)'">
+                    @foreach($footerDresses as $dress)
+                    @php $img = $dress->images->firstWhere('is_primary', true) ?? $dress->images->first(); @endphp
+                    <a href="{{ route('dresses.show', $dress->slug) }}"
+                       class="shrink-0 w-24 h-28 rounded-xl overflow-hidden border border-white/10 hover:border-white/30 transition-all hover:scale-105 shadow-md"
+                       title="{{ $dress->name }}">
+                        <img src="{{ Storage::disk('public')->url($img->image_path) }}"
+                             alt="{{ $dress->name }}"
+                             class="w-full h-full object-cover"
+                             loading="lazy">
+                    </a>
+                    @endforeach
+                </div>
+
+                {{-- Gradient fade edges --}}
+                <div class="absolute inset-y-0 left-0 w-12 bg-gradient-to-r from-[#1e1b4b] to-transparent pointer-events-none"></div>
+                <div class="absolute inset-y-0 right-0 w-12 bg-gradient-to-l from-[#0f172a] to-transparent pointer-events-none"></div>
+            </div>
+        </div>
+        @endif
+        @endisset
         <div class="max-w-7xl mx-auto px-4 py-14">
             <div class="grid grid-cols-1 md:grid-cols-4 gap-10">
                 <!-- Brand -->
@@ -374,5 +409,31 @@
     </nav>
 
     @stack('scripts')
+    <script>
+    function footerSlider(total, interval) {
+        return {
+            current: 0,
+            total: total,
+            timer: null,
+            get offset() {
+                const track = document.querySelector('.footer-slider-track');
+                if (!track || !track.children.length) return 0;
+                const child = track.children[0];
+                const w = child.offsetWidth + parseInt(getComputedStyle(track).gap || 12);
+                return -(this.current * w);
+            },
+            init() {
+                if (this.total > 5) this.startAutoplay();
+            },
+            startAutoplay() {
+                this.timer = setInterval(() => this.next(), interval);
+            },
+            pause() { clearInterval(this.timer); this.timer = null; },
+            resume() { if (!this.timer && this.total > 5) this.startAutoplay(); },
+            next() { this.current = (this.current + 1) % this.total; },
+            prev() { this.current = (this.current - 1 + this.total) % this.total; },
+        };
+    }
+    </script>
 </body>
 </html>
