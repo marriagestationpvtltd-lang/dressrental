@@ -383,6 +383,7 @@ function featuredSlider() {
                 else this.prev();
             } else {
                 this.trackOffset = this.baseOffset; // snap back
+                this.hasDragged = false;             // allow the click to navigate
             }
             this.resumeAutoplay();
         },
