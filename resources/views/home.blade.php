@@ -245,6 +245,55 @@
     </div>
 </section>
 
+<!-- ═══════════════════ CATEGORY SHOWCASE ═══════════════════ -->
+@if($showcaseCategories->count())
+    @php
+        $showcaseBgs   = ['bg-white', 'section-violet', 'bg-gray-50'];
+        $showcaseAccents = [
+            ['badge' => 'text-primary-600 bg-primary-100 border-primary-200', 'btn' => 'text-primary-600 hover:text-primary-700 border-primary-200 bg-white hover:shadow'],
+            ['badge' => 'text-rose-600 bg-rose-100 border-rose-200',          'btn' => 'text-rose-600 hover:text-rose-700 border-rose-200 bg-white hover:shadow'],
+            ['badge' => 'text-emerald-600 bg-emerald-100 border-emerald-200', 'btn' => 'text-emerald-600 hover:text-emerald-700 border-emerald-200 bg-white hover:shadow'],
+        ];
+    @endphp
+    @foreach($showcaseCategories as $i => $showcaseCat)
+    @php $accent = $showcaseAccents[$i % count($showcaseAccents)]; @endphp
+    <section class="{{ $showcaseBgs[$i % count($showcaseBgs)] }} py-12 md:py-16">
+        <div class="max-w-7xl mx-auto px-4">
+            <div class="flex items-end justify-between mb-8">
+                <div>
+                    <span class="inline-block text-xs font-bold uppercase tracking-widest border rounded-full px-3 py-1 mb-3 {{ $accent['badge'] }}">
+                        {{ $showcaseCat->icon ?: '👗' }} {{ $showcaseCat->name }}
+                    </span>
+                    <h2 class="text-2xl md:text-3xl font-extrabold text-gray-900">{{ $showcaseCat->name }}</h2>
+                    @if($showcaseCat->description)
+                    <p class="text-gray-500 mt-1.5 text-sm">{{ $showcaseCat->description }}</p>
+                    @endif
+                </div>
+                <a href="{{ route('categories.show', $showcaseCat->slug) }}"
+                   class="hidden md:inline-flex items-center gap-1.5 font-semibold text-sm border rounded-xl px-4 py-2 shadow-sm transition-all {{ $accent['btn'] }}">
+                    View All
+                    <svg class="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17 8l4 4m0 0l-4 4m4-4H3"/></svg>
+                </a>
+            </div>
+
+            <div class="grid grid-cols-2 md:grid-cols-4 gap-4 md:gap-5">
+                @foreach($showcaseCat->previewDresses as $dress)
+                    @include('components.dress-card', ['dress' => $dress])
+                @endforeach
+            </div>
+
+            <div class="mt-6 text-center md:hidden">
+                <a href="{{ route('categories.show', $showcaseCat->slug) }}"
+                   class="inline-flex items-center gap-1.5 font-semibold text-sm border rounded-xl px-4 py-2 shadow-sm {{ $accent['btn'] }}">
+                    View All {{ $showcaseCat->name }}
+                    <svg class="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17 8l4 4m0 0l-4 4m4-4H3"/></svg>
+                </a>
+            </div>
+        </div>
+    </section>
+    @endforeach
+@endif
+
 <!-- ═══════════════════ NEW ARRIVALS ═══════════════════ -->
 @if($newArrivals->count())
 <section class="section-amber py-16">
@@ -263,6 +312,12 @@
             @foreach($newArrivals as $dress)
                 @include('components.dress-card', ['dress' => $dress])
             @endforeach
+        </div>
+        <div class="mt-5 text-center md:hidden">
+            <a href="{{ route('dresses.new-arrivals') }}" class="inline-flex items-center gap-1.5 text-amber-700 font-semibold text-sm border border-amber-300 bg-amber-100 rounded-xl px-4 py-2 shadow-sm">
+                View All New Arrivals
+                <svg class="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17 8l4 4m0 0l-4 4m4-4H3"/></svg>
+            </a>
         </div>
     </div>
 </section>
