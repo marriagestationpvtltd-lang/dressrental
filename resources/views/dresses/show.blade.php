@@ -58,6 +58,25 @@
     opacity: 0;
     pointer-events: none;
 }
+
+/* Zoom popup: image scale-in animation */
+@keyframes zoomImgIn {
+    from { opacity: 0; transform: scale(0.9); }
+    to   { opacity: 1; transform: scale(1); }
+}
+.zoom-img-container {
+    animation: zoomImgIn 0.2s ease-out both;
+}
+
+/* Zoom popup: recommended accessories footer slide-up animation */
+@keyframes zoomAccSlideUp {
+    from { opacity: 0; transform: translateY(2rem); }
+    to   { opacity: 1; transform: translateY(0); }
+}
+.zoom-acc-footer {
+    animation: zoomAccSlideUp 0.4s cubic-bezier(0.16, 1, 0.3, 1) 0.2s both;
+}
+.zoom-acc-footer .acc-strip::-webkit-scrollbar { display: none; }
 </style>
 @endpush
 
@@ -112,15 +131,25 @@
 
             <!-- ── Images Gallery (60%) ── -->
             <div class="flex flex-col gap-3 lg:col-span-3">
+            @php
+                $imageUrls  = $dress->images->pluck('url')->values()->toArray();
+                $primaryUrl = optional($dress->primaryImage())->url ?? '';
+                $foundIdx   = array_search($primaryUrl, $imageUrls);
+                $initialIdx = ($foundIdx !== false) ? (int) $foundIdx : 0;
+            @endphp
             <div x-data="{
-                    activeImg: '{{ $dress->primaryImage() ? $dress->primaryImage()->url : '' }}',
+                    images: @json($imageUrls),
+                    activeIdx: {{ $initialIdx }},
+                    get activeImg() { return this.images[this.activeIdx] ?? ''; },
                     zoom: false,
-                    openZoomMain() { if (this.activeImg) this.zoom = true; }
+                    openZoom() { if (this.images.length) this.zoom = true; },
+                    prevImg() { this.activeIdx = (this.activeIdx - 1 + this.images.length) % this.images.length; },
+                    nextImg() { this.activeIdx = (this.activeIdx + 1) % this.images.length; }
                  }">
                 <!-- Main image -->
                 <div class="rounded-2xl overflow-hidden bg-gradient-to-br from-violet-50 to-pink-50 mb-3 border border-violet-100 shadow-card relative group cursor-zoom-in"
                      style="max-height: 70vh;"
-                     @click="openZoomMain()">
+                     @click="openZoom()">
                     @if($dress->primaryImage())
                         <img :src="activeImg" alt="{{ $dress->name }}"
                              class="w-full object-cover object-center"
@@ -143,7 +172,7 @@
                     @endif
                 </div>
 
-                <!-- Main image zoom popup -->
+                <!-- Main image zoom popup — with prev/next navigation and accessories footer -->
                 <template x-teleport="body">
                     <div x-show="zoom"
                          x-cloak
@@ -158,30 +187,106 @@
                          x-transition:leave-end="opacity-0"
                          @click="zoom = false"
                          @keydown.escape.window="zoom = false"
-                         class="fixed inset-0 z-[200] flex items-center justify-center bg-black/70 backdrop-blur-sm"
+                         @keydown.arrow-left.window="zoom && images.length > 1 && prevImg()"
+                         @keydown.arrow-right.window="zoom && images.length > 1 && nextImg()"
+                         class="fixed inset-0 z-[200] flex flex-col bg-black/80 backdrop-blur-sm"
                          style="display:none">
-                        <div class="relative" @click.stop
-                             x-transition:enter="transition ease-out duration-200"
-                             x-transition:enter-start="opacity-0 scale-90"
-                             x-transition:enter-end="opacity-100 scale-100">
-                            <img :src="activeImg" alt="{{ $dress->name }}"
-                                 class="max-w-[90vw] max-h-[85vh] w-auto h-auto rounded-2xl shadow-2xl object-contain">
-                            <button @click="zoom = false" aria-label="Close image zoom"
-                                    x-ref="zoomClose"
-                                    class="absolute -top-3 -right-3 w-7 h-7 bg-white rounded-full shadow-lg flex items-center justify-center text-gray-500 hover:text-gray-900 transition-colors">
-                                <svg class="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2.5">
-                                    <path stroke-linecap="round" stroke-linejoin="round" d="M6 18L18 6M6 6l12 12"/>
-                                </svg>
-                            </button>
+
+                        <!-- Image area — clicking the empty backdrop closes the popup -->
+                        <div class="flex-1 flex items-center justify-center min-h-0 p-4 sm:p-6">
+                            <div class="zoom-img-container relative" @click.stop>
+                                <img :src="activeImg"
+                                     alt="{{ $dress->name }}"
+                                     class="max-w-[90vw] {{ $ornamentRecommendations->count() ? 'max-h-[55vh]' : 'max-h-[82vh]' }} w-auto h-auto block rounded-2xl shadow-2xl object-contain">
+
+                                <!-- Close -->
+                                <button @click.stop="zoom = false"
+                                        aria-label="Close image zoom"
+                                        class="absolute -top-3 -right-3 w-8 h-8 bg-white rounded-full shadow-lg flex items-center justify-center text-gray-500 hover:text-gray-900 transition-colors z-10">
+                                    <svg class="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2.5">
+                                        <path stroke-linecap="round" stroke-linejoin="round" d="M6 18L18 6M6 6l12 12"/>
+                                    </svg>
+                                </button>
+
+                                @if($dress->images->count() > 1)
+                                <!-- Prev -->
+                                <button @click.stop="prevImg()"
+                                        aria-label="Previous image"
+                                        class="absolute left-2 top-1/2 -translate-y-1/2 w-9 h-9 bg-black/50 hover:bg-black/70 rounded-full flex items-center justify-center text-white transition-colors shadow-md">
+                                    <svg class="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2.5">
+                                        <path stroke-linecap="round" stroke-linejoin="round" d="M15 19l-7-7 7-7"/>
+                                    </svg>
+                                </button>
+                                <!-- Next -->
+                                <button @click.stop="nextImg()"
+                                        aria-label="Next image"
+                                        class="absolute right-2 top-1/2 -translate-y-1/2 w-9 h-9 bg-black/50 hover:bg-black/70 rounded-full flex items-center justify-center text-white transition-colors shadow-md">
+                                    <svg class="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2.5">
+                                        <path stroke-linecap="round" stroke-linejoin="round" d="M9 5l7 7-7 7"/>
+                                    </svg>
+                                </button>
+                                <!-- Image counter -->
+                                <div class="absolute bottom-2 left-1/2 -translate-x-1/2 bg-black/60 text-white text-xs font-semibold px-2.5 py-0.5 rounded-full select-none pointer-events-none">
+                                    <span x-text="activeIdx + 1"></span>&thinsp;/&thinsp;<span x-text="images.length"></span>
+                                </div>
+                                @endif
+                            </div>
                         </div>
+
+                        @if($ornamentRecommendations->count())
+                        <!-- Recommended Accessories footer — slides up with animation when popup opens -->
+                        <div @click.stop
+                             class="zoom-acc-footer flex-shrink-0 bg-black/50 backdrop-blur-md border-t border-white/10 px-4 py-3">
+                            <div class="max-w-3xl mx-auto">
+                                <div class="flex items-center gap-2 mb-2">
+                                    <span class="w-4 h-4 gradient-bg rounded flex items-center justify-center flex-shrink-0">
+                                        <svg class="w-2.5 h-2.5 text-white" fill="currentColor" viewBox="0 0 20 20">
+                                            <path d="M5 3a2 2 0 00-2 2v2a2 2 0 002 2h2a2 2 0 002-2V5a2 2 0 00-2-2H5zM5 11a2 2 0 00-2 2v2a2 2 0 002 2h2a2 2 0 002-2v-2a2 2 0 00-2-2H5zM11 5a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2h-2a2 2 0 01-2-2V5zM14 11a1 1 0 011 1v1h1a1 1 0 110 2h-1v1a1 1 0 11-2 0v-1h-1a1 1 0 110-2h1v-1a1 1 0 011-1z"/>
+                                        </svg>
+                                    </span>
+                                    <span class="text-white text-xs font-bold tracking-wide">Recommended Accessories</span>
+                                    @if($ornamentRecommendations->count() > 3)
+                                    <span class="ml-auto text-white/50 text-[10px] flex items-center gap-0.5 select-none">
+                                        <svg class="w-3 h-3" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2.5"><path stroke-linecap="round" stroke-linejoin="round" d="M15 19l-7-7 7-7"/></svg>
+                                        swipe
+                                        <svg class="w-3 h-3" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2.5"><path stroke-linecap="round" stroke-linejoin="round" d="M9 5l7 7-7 7"/></svg>
+                                    </span>
+                                    @endif
+                                </div>
+                                <!-- Horizontal scrolling accessories strip -->
+                                <div class="acc-strip flex gap-2.5 overflow-x-auto pb-0.5" style="scrollbar-width:none;-webkit-overflow-scrolling:touch;-ms-overflow-style:none;">
+                                    @foreach($ornamentRecommendations as $ornament)
+                                    <div class="flex-shrink-0 w-14 sm:w-16 cursor-pointer group/zacc"
+                                         @click.stop="$store.accessories.toggle({{ $ornament->id }})"
+                                         role="button"
+                                         tabindex="0"
+                                         aria-label="{{ $ornament->name }} — ₨{{ number_format($ornament->price_per_day) }} per day"
+                                         :aria-pressed="$store.accessories.selected.includes({{ $ornament->id }})"
+                                         @keydown.enter.prevent.stop="$store.accessories.toggle({{ $ornament->id }})"
+                                         @keydown.space.prevent.stop="$store.accessories.toggle({{ $ornament->id }})">
+                                        <div class="rounded-lg overflow-hidden border-2 transition-colors"
+                                             :class="$store.accessories.selected.includes({{ $ornament->id }}) ? 'border-fuchsia-400' : 'border-white/20 group-hover/zacc:border-fuchsia-200'"
+                                             style="aspect-ratio:1/1;">
+                                            <img src="{{ $ornament->image_url }}"
+                                                 alt="{{ $ornament->name }}"
+                                                 class="w-full h-full object-cover transition-transform duration-300 group-hover/zacc:scale-105">
+                                        </div>
+                                        <p class="text-white/90 text-[9px] font-semibold text-center mt-1 truncate leading-tight" title="{{ $ornament->name }}">{{ $ornament->name }}</p>
+                                        <p class="text-fuchsia-300 text-[9px] font-bold text-center">₨{{ number_format($ornament->price_per_day) }}</p>
+                                    </div>
+                                    @endforeach
+                                </div>
+                            </div>
+                        </div>
+                        @endif
                     </div>
                 </template>
 
                 @if($dress->images->count() > 1)
                 <div class="grid grid-cols-5 gap-2">
-                    @foreach($dress->images as $img)
-                        <button @click="activeImg = '{{ $img->url }}'"
-                                :class="activeImg === '{{ $img->url }}' ? 'thumb-active' : 'border-gray-200'"
+                    @foreach($dress->images as $i => $img)
+                        <button @click="activeIdx = {{ $i }}"
+                                :class="activeIdx === {{ $i }} ? 'thumb-active' : 'border-gray-200'"
                                 class="aspect-square rounded-xl overflow-hidden border-2 hover:border-primary-400 transition-all focus:outline-none">
                             <img src="{{ $img->url }}" alt="" class="w-full h-full object-cover">
                         </button>
