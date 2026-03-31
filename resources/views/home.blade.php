@@ -4,31 +4,32 @@
 
 @push('styles')
 <style>
-@keyframes featured-scroll {
-    from { transform: translateX(0); }
-    to   { transform: translateX(-50%); }
-}
-.featured-slider {
-    display: flex;
-    width: max-content;
-    animation: featured-scroll 35s linear infinite;
-}
-.featured-slider-item {
-    flex-shrink: 0;
-    width: 13rem; /* w-52 */
-}
-@media (min-width: 768px) {
-    .featured-slider-item {
-        width: 15rem; /* w-60 */
-    }
-}
-.featured-slider-wrapper {
+/* ── Featured Dresses Paged Slider ── */
+.fs-wrapper {
     touch-action: pan-y;
     cursor: grab;
     user-select: none;
+    -webkit-user-select: none;
+    position: relative;
 }
-.featured-slider-wrapper.is-dragging {
-    cursor: grabbing;
+.fs-wrapper.is-dragging { cursor: grabbing; }
+
+.fs-viewport { overflow: hidden; }
+
+.fs-track {
+    display: flex;
+    gap: 1rem;
+    transition: transform 0.45s cubic-bezier(0.25, 0.46, 0.45, 0.94);
+    will-change: transform;
+}
+.fs-track.fs-no-transition { transition: none; }
+
+/* card: ~75 vw on mobile, capped for larger screens */
+.fs-card {
+    flex-shrink: 0;
+    width: clamp(240px, 75vw, 320px);
+    max-height: 80vh;
+    overflow: hidden;
 }
 </style>
 @endpush
@@ -153,9 +154,9 @@
 
 <!-- ═══════════════════ FEATURED DRESSES ═══════════════════ -->
 @if($featuredDresses->count())
-<section class="bg-white py-16">
+<section class="bg-white py-6 md:py-8">
     <div class="max-w-7xl mx-auto px-4">
-        <div class="flex items-end justify-between mb-10">
+        <div class="flex items-end justify-between mb-6">
             <div>
                 <span class="inline-block text-xs font-bold text-amber-600 uppercase tracking-widest bg-amber-100 border border-amber-200 rounded-full px-3 py-1 mb-3">⭐ Hand-Picked</span>
                 <h2 class="text-2xl md:text-3xl font-extrabold text-gray-900">Featured Dresses</h2>
@@ -166,31 +167,46 @@
             </a>
         </div>
 
-        <!-- Single-row infinite auto-scroll slider (drag & swipe enabled) -->
-        <div class="overflow-hidden featured-slider-wrapper"
+        <!-- Paged slider: ~75% card width, next card partially visible -->
+        <div class="fs-wrapper"
              :class="{ 'is-dragging': dragging }"
              x-data="featuredSlider()"
-             @mouseenter="if (!dragging) pauseAnim()"
-             @mouseleave="if (!dragging) resumeAnim()"
+             @mouseenter="pauseAutoplay()"
+             @mouseleave="resumeAutoplay()"
              @pointerdown="startDrag($event)"
              @pointermove="onDrag($event)"
              @pointerup="endDrag($event)"
              @pointercancel="cancelDrag()"
-             @click.capture="if (hasDragged) { $event.preventDefault(); hasDragged = false; }">
-            <div class="featured-slider flex gap-5"
-                 x-ref="slider">
+             @click.capture="if (hasDragged) { $event.preventDefault(); $event.stopPropagation(); hasDragged = false; }">
 
-                {{-- First copy --}}
-                @foreach($featuredDresses as $dress)
-                    @include('components.featured-slider-card', ['dress' => $dress])
-                @endforeach
-
-                {{-- Duplicate copy for seamless infinite loop --}}
-                @foreach($featuredDresses as $dress)
-                    @include('components.featured-slider-card', ['dress' => $dress, 'ariaHidden' => true])
-                @endforeach
-
+            <div class="fs-viewport">
+                <div class="fs-track"
+                     x-ref="track"
+                     :class="{ 'fs-no-transition': dragging }"
+                     :style="`transform: translateX(${trackOffset}px)`">
+                    @foreach($featuredDresses as $dress)
+                        @include('components.featured-slider-card', ['dress' => $dress])
+                    @endforeach
+                </div>
             </div>
+
+            @if($featuredDresses->count() > 1)
+            <div class="flex justify-center items-center gap-2 mt-5">
+                @foreach($featuredDresses as $dress)
+                <button @click="goTo({{ $loop->index }}); resetAutoplay()"
+                        :class="current === {{ $loop->index }} ? 'bg-primary-600 w-5' : 'bg-gray-300 w-2'"
+                        class="h-2 rounded-full transition-all duration-300"
+                        aria-label="Go to slide {{ $loop->index + 1 }}"></button>
+                @endforeach
+            </div>
+            @endif
+        </div>
+
+        <div class="mt-5 text-center md:hidden">
+            <a href="{{ route('dresses.featured') }}" class="inline-flex items-center gap-1.5 text-amber-600 font-semibold text-sm hover:text-amber-700 border border-amber-200 bg-amber-50 rounded-xl px-4 py-2 shadow-sm">
+                View All Featured
+                <svg class="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17 8l4 4m0 0l-4 4m4-4H3"/></svg>
+            </a>
         </div>
     </div>
 </section>
@@ -289,81 +305,94 @@
 @push('scripts')
 <script>
 function featuredSlider() {
-    const ANIMATION_DURATION_S = 35;
-    const DRAG_THRESHOLD_PX = 5;
+    const GAP_PX = 16;             // matches gap: 1rem in .fs-track
+    const DRAG_THRESHOLD = 50;     // px to register drag as a slide change
+    const AUTOPLAY_INTERVAL_MS = 4000;
 
     return {
+        current: 0,
+        total: 0,
         dragging: false,
         hasDragged: false,
         startX: 0,
-        baseX: 0,
+        trackOffset: 0,
+        baseOffset: 0,
+        autoTimer: null,
 
-        slider() {
-            return this.$refs.slider;
+        init() {
+            this.total = this.$refs.track.children.length;
+            this.snapTo(0);
+            this.startAutoplay();
+            // Recalculate on resize (card width is clamp-based)
+            const ro = new ResizeObserver(() => this.snapTo(this.current));
+            ro.observe(this.$refs.track.parentElement);
         },
 
-        getCurrentX() {
-            const matrix = new DOMMatrix(window.getComputedStyle(this.slider()).transform);
-            return matrix.m41;
+        cardWidth() {
+            const card = this.$refs.track.children[0];
+            return card ? card.offsetWidth : 0;
         },
 
-        pauseAnim() {
-            this.slider().style.animationPlayState = 'paused';
+        snapTo(idx) {
+            this.current = Math.max(0, Math.min(idx, this.total - 1));
+            this.baseOffset = -(this.current * (this.cardWidth() + GAP_PX));
+            this.trackOffset = this.baseOffset;
         },
 
-        resumeAnim(fromX) {
-            const slider = this.slider();
-            if (fromX !== undefined) {
-                const totalWidth = slider.scrollWidth / 2;
-                let normalX = fromX % -totalWidth;
-                if (normalX > 0) normalX -= totalWidth;
-                const progress = Math.abs(normalX) / totalWidth;
-                slider.style.animationDelay = -(progress * ANIMATION_DURATION_S) + 's';
-            }
-            // Clear animation override set during drag, then resume
-            slider.style.animation = '';
-            slider.style.animationPlayState = 'running';
+        goTo(idx) { this.snapTo(idx); },
+
+        next() { this.snapTo(this.current < this.total - 1 ? this.current + 1 : 0); },
+        prev() { this.snapTo(this.current > 0 ? this.current - 1 : this.total - 1); },
+
+        startAutoplay() {
+            this.autoTimer = setInterval(() => this.next(), AUTOPLAY_INTERVAL_MS);
+        },
+        pauseAutoplay() {
+            clearInterval(this.autoTimer);
+            this.autoTimer = null;
+        },
+        resumeAutoplay() {
+            if (!this.autoTimer) this.startAutoplay();
+        },
+        resetAutoplay() {
+            this.pauseAutoplay();
+            this.resumeAutoplay();
         },
 
         startDrag(e) {
-            this.hasDragged = false;
-            this.baseX = this.getCurrentX();
+            this.pauseAutoplay();
             this.dragging = true;
+            this.hasDragged = false;
             this.startX = e.clientX;
-            this.slider().style.animation = 'none';
-            this.slider().style.transform = `translateX(${this.baseX}px)`;
             this.$el.setPointerCapture(e.pointerId);
         },
 
         onDrag(e) {
             if (!this.dragging) return;
-            const delta = e.clientX - this.startX;
-            if (Math.abs(delta) > DRAG_THRESHOLD_PX) this.hasDragged = true;
-            this.slider().style.transform = `translateX(${this.baseX + delta}px)`;
+            const diff = e.clientX - this.startX;
+            if (Math.abs(diff) > 5) this.hasDragged = true;
+            this.trackOffset = this.baseOffset + diff;
         },
 
         endDrag(e) {
             if (!this.dragging) return;
             this.dragging = false;
-            const currentX = this.baseX + (e.clientX - this.startX);
-            this.slider().style.transform = '';
-            this.resumeAnim(currentX);
-            // Re-apply hover pause if mouse is still over the wrapper (mouse drag only)
-            if (e.pointerType === 'mouse') {
-                const rect = this.$el.getBoundingClientRect();
-                if (e.clientX >= rect.left && e.clientX <= rect.right &&
-                    e.clientY >= rect.top && e.clientY <= rect.bottom) {
-                    this.pauseAnim();
-                }
+            const diff = e.clientX - this.startX;
+            if (this.hasDragged && Math.abs(diff) >= DRAG_THRESHOLD) {
+                if (diff < 0) this.next();
+                else this.prev();
+            } else {
+                this.trackOffset = this.baseOffset; // snap back
             }
+            this.resumeAutoplay();
         },
 
         cancelDrag() {
             if (!this.dragging) return;
             this.dragging = false;
             this.hasDragged = false;
-            this.slider().style.transform = '';
-            this.resumeAnim(this.baseX);
+            this.trackOffset = this.baseOffset;
+            this.resumeAutoplay();
         },
     };
 }
