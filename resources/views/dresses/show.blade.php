@@ -711,7 +711,14 @@ function bookingForm() {
                 this.available = data.available;
                 // Store the base dress amounts; ornament costs are added client-side below
                 this.amounts = data.amounts
-                    ? { ...data.amounts, dress_rental: data.amounts.rental_amount }
+                    ? {
+                        ...data.amounts,
+                        dress_rental:   parseFloat(data.amounts.rental_amount)  || 0,
+                        rental_amount:  parseFloat(data.amounts.rental_amount)  || 0,
+                        deposit_amount: parseFloat(data.amounts.deposit_amount) || 0,
+                        total_amount:   parseFloat(data.amounts.total_amount)   || 0,
+                        advance_amount: parseFloat(data.amounts.advance_amount) || 0,
+                      }
                     : null;
             } catch (e) {
                 this.available = null;

@@ -41,10 +41,10 @@ class BookingService
 
         return [
             'total_days'     => $totalDays,
-            'rental_amount'  => $rentalAmount,
-            'deposit_amount' => $depositAmount,
-            'total_amount'   => $totalAmount,
-            'advance_amount' => $advanceAmount,
+            'rental_amount'  => (float) $rentalAmount,
+            'deposit_amount' => (float) $depositAmount,
+            'total_amount'   => (float) $totalAmount,
+            'advance_amount' => (float) $advanceAmount,
         ];
     }
 
