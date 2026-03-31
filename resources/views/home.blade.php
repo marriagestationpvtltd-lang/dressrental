@@ -92,12 +92,46 @@
     <div class="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[600px] h-[600px] bg-primary-700/20 rounded-full blur-3xl pointer-events-none"></div>
 
     @if($heroBanners->count())
-    {{-- ── Dynamic layout when banners are present ── --}}
-    <div class="relative max-w-7xl mx-auto px-4 py-14 md:py-20">
-        <div class="flex flex-col lg:flex-row items-center gap-10 lg:gap-16">
+    {{-- ── Dynamic layout: banner fills the entire hero section ── --}}
+    <div class="relative min-h-[480px] md:min-h-[580px]"
+         x-data="heroSlider({{ $heroBanners->count() }}, {{ (int) setting('hero_slider_interval', 5000) }}, '{{ setting('hero_slider_animation', 'slide') }}')"
+         x-init="init()"
+         @mouseenter="pause()" @mouseleave="resume()">
 
-            {{-- Text content --}}
-            <div class="flex-1 text-center lg:text-left">
+        {{-- Full-bleed banner slider filling the entire section --}}
+        <div class="hero-slider absolute inset-0 w-full h-full"
+             data-animation="{{ setting('hero_slider_animation', 'slide') }}">
+
+            @foreach($heroBanners as $i => $banner)
+            <div class="hero-slider-item w-full h-full {{ $i === 0 ? 'active' : '' }}"
+                 :class="{ 'active': current === {{ $i }}, 'leaving': leaving === {{ $i }} }">
+
+                @if($banner->media_type === 'youtube')
+                    <iframe
+                        src="{{ $banner->youtube_embed_url }}"
+                        class="w-full h-full"
+                        frameborder="0"
+                        allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
+                        allowfullscreen
+                        title="{{ $banner->title ?? 'Banner video' }}"
+                        loading="lazy">
+                    </iframe>
+                @else
+                    <img src="{{ $banner->image_url }}"
+                         alt="{{ $banner->title ?? 'Banner' }}"
+                         class="w-full h-full object-cover"
+                         loading="{{ $i === 0 ? 'eager' : 'lazy' }}">
+                @endif
+            </div>
+            @endforeach
+        </div>
+
+        {{-- Dark gradient overlay for text readability --}}
+        <div class="absolute inset-0 bg-gradient-to-r from-black/70 via-black/50 to-black/20 z-[1]"></div>
+
+        {{-- Text content overlaid on the banner --}}
+        <div class="relative z-[2] max-w-7xl mx-auto px-4 py-20 md:py-28">
+            <div class="max-w-2xl text-center lg:text-left">
                 <div class="inline-flex items-center gap-2 bg-white/15 backdrop-blur-sm border border-white/20 rounded-full px-5 py-2 text-sm font-semibold mb-8 shadow-lg">
                     <span class="w-2 h-2 bg-amber-400 rounded-full animate-pulse"></span>
                     Nepal's #1 Dress Rental Platform
@@ -123,67 +157,32 @@
                     @endguest
                 </div>
             </div>
-
-            {{-- Media slider --}}
-            <div class="flex-1 w-full max-w-xl lg:max-w-none"
-                 x-data="heroSlider({{ $heroBanners->count() }}, {{ (int) setting('hero_slider_interval', 5000) }}, '{{ setting('hero_slider_animation', 'slide') }}')"
-                 x-init="init()"
-                 @mouseenter="pause()" @mouseleave="resume()">
-
-                <div class="hero-slider relative rounded-2xl overflow-hidden shadow-2xl"
-                     style="aspect-ratio: 16/9;"
-                     data-animation="{{ setting('hero_slider_animation', 'slide') }}">
-
-                    @foreach($heroBanners as $i => $banner)
-                    <div class="hero-slider-item w-full h-full {{ $i === 0 ? 'active' : '' }}"
-                         :class="{ 'active': current === {{ $i }}, 'leaving': leaving === {{ $i }} }">
-
-                        @if($banner->media_type === 'youtube')
-                            <iframe
-                                src="{{ $banner->youtube_embed_url }}"
-                                class="w-full h-full"
-                                frameborder="0"
-                                allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
-                                allowfullscreen
-                                title="{{ $banner->title ?? 'Banner video' }}"
-                                loading="lazy">
-                            </iframe>
-                        @else
-                            <img src="{{ $banner->image_url }}"
-                                 alt="{{ $banner->title ?? 'Banner' }}"
-                                 class="w-full h-full object-cover"
-                                 loading="{{ $i === 0 ? 'eager' : 'lazy' }}">
-                        @endif
-                    </div>
-                    @endforeach
-
-                    {{-- Prev / Next controls --}}
-                    @if($heroBanners->count() > 1)
-                    <button @click="prev()"
-                            class="absolute left-3 top-1/2 -translate-y-1/2 w-9 h-9 bg-black/40 hover:bg-black/60 rounded-full flex items-center justify-center text-white transition-colors z-10"
-                            aria-label="Previous banner">
-                        <svg class="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 19l-7-7 7-7"/></svg>
-                    </button>
-                    <button @click="next()"
-                            class="absolute right-3 top-1/2 -translate-y-1/2 w-9 h-9 bg-black/40 hover:bg-black/60 rounded-full flex items-center justify-center text-white transition-colors z-10"
-                            aria-label="Next banner">
-                        <svg class="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7"/></svg>
-                    </button>
-
-                    {{-- Dot indicators --}}
-                    <div class="absolute bottom-3 left-1/2 -translate-x-1/2 flex gap-1.5 z-10">
-                        @foreach($heroBanners as $i => $banner)
-                        <button @click="goTo({{ $i }})"
-                                :class="current === {{ $i }} ? 'w-6 bg-white' : 'w-2 bg-white/50'"
-                                class="h-2 rounded-full transition-all duration-300"
-                                aria-label="Go to banner {{ $i + 1 }}">
-                        </button>
-                        @endforeach
-                    </div>
-                    @endif
-                </div>
-            </div>
         </div>
+
+        {{-- Prev / Next controls --}}
+        @if($heroBanners->count() > 1)
+        <button @click="prev()"
+                class="absolute left-4 top-1/2 -translate-y-1/2 w-10 h-10 bg-black/40 hover:bg-black/60 rounded-full flex items-center justify-center text-white transition-colors z-10 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-white focus-visible:ring-offset-2"
+                aria-label="Previous banner">
+            <svg class="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 19l-7-7 7-7"/></svg>
+        </button>
+        <button @click="next()"
+                class="absolute right-4 top-1/2 -translate-y-1/2 w-10 h-10 bg-black/40 hover:bg-black/60 rounded-full flex items-center justify-center text-white transition-colors z-10 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-white focus-visible:ring-offset-2"
+                aria-label="Next banner">
+            <svg class="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7"/></svg>
+        </button>
+
+        {{-- Dot indicators --}}
+        <div class="absolute bottom-6 left-1/2 -translate-x-1/2 flex gap-1.5 z-10">
+            @foreach($heroBanners as $i => $banner)
+            <button @click="goTo({{ $i }})"
+                    :class="current === {{ $i }} ? 'w-6 bg-white' : 'w-2 bg-white/50'"
+                    class="h-2 rounded-full transition-all duration-300 p-2 box-content focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-white"
+                    aria-label="Go to banner {{ $i + 1 }}">
+            </button>
+            @endforeach
+        </div>
+        @endif
     </div>
     @else
     {{-- ── Static hero (no banners configured) ── --}}
