@@ -64,6 +64,27 @@
     </div>
 
     <!-- Payments History -->
+    @if($booking->ornaments->count())
+    <div class="bg-white rounded-2xl shadow-sm border border-gray-100 p-5 mb-4">
+        <h3 class="font-semibold text-gray-900 mb-4">Booked Accessories</h3>
+        <div class="space-y-3">
+            @foreach($booking->ornaments as $ornament)
+            <div class="flex items-center gap-3">
+                <div class="w-10 h-10 rounded-lg overflow-hidden bg-fuchsia-50 shrink-0">
+                    <img src="{{ $ornament->image_url }}" alt="{{ $ornament->name }}" class="w-full h-full object-cover">
+                </div>
+                <div class="flex-1 min-w-0">
+                    <p class="font-medium text-gray-900 text-sm truncate">{{ $ornament->name }}</p>
+                    <p class="text-xs text-gray-400">{{ \App\Models\Ornament::categoryLabel($ornament->category) }}</p>
+                </div>
+                <span class="text-sm font-bold text-gray-900">₨{{ number_format($ornament->pivot->subtotal) }}</span>
+            </div>
+            @endforeach
+        </div>
+    </div>
+    @endif
+
+    <!-- Payments History -->
     @if($booking->payments->count())
     <div class="bg-white rounded-2xl shadow-sm border border-gray-100 p-5 mb-4">
         <h3 class="font-semibold text-gray-900 mb-4">Payment History</h3>

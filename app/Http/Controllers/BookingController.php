@@ -41,10 +41,12 @@ class BookingController extends Controller
     public function store(Request $request)
     {
         $data = $request->validate([
-            'dress_id'   => 'required|exists:dresses,id',
-            'start_date' => 'required|date|after_or_equal:today',
-            'end_date'   => 'required|date|after_or_equal:start_date',
-            'notes'      => 'nullable|string|max:500',
+            'dress_id'    => 'required|exists:dresses,id',
+            'start_date'  => 'required|date|after_or_equal:today',
+            'end_date'    => 'required|date|after_or_equal:start_date',
+            'notes'       => 'nullable|string|max:500',
+            'ornaments'   => 'nullable|array',
+            'ornaments.*' => 'integer|exists:ornaments,id',
         ]);
 
         $data['user_id'] = Auth::id();
@@ -56,8 +58,8 @@ class BookingController extends Controller
         }
 
         try {
-            Mail::to($booking->user->email)->send(new BookingConfirmation($booking->load(['dress', 'user'])));
-        } catch (\Throwable) {
+            Mail::to($booking->user->email)->send(new BookingConfirmation($booking->load(['dress', 'user', 'ornaments'])));
+        } catch (\Exception) {
             // Non-fatal: booking is created, email delivery failure should not block user flow
         }
 
