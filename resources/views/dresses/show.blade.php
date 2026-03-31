@@ -104,17 +104,8 @@
                          }, 600);
                      },
                      zoom: null,
-                     zoomTimer: null,
                      openZoom(src, name) {
-                         clearTimeout(this.zoomTimer);
                          this.zoom = { src, name };
-                     },
-                     closeZoom() {
-                         // 150 ms debounce prevents flicker when mouse moves from item to popup
-                         this.zoomTimer = setTimeout(() => { this.zoom = null; }, 150);
-                     },
-                     keepZoom() {
-                         clearTimeout(this.zoomTimer);
                      },
                      isSelected(id) {
                          return $store.accessories.selected.includes(id);
@@ -156,8 +147,6 @@
                         <div class="aspect-square bg-gradient-to-br from-fuchsia-50 to-pink-50 overflow-hidden relative cursor-zoom-in"
                              data-zoom-src="{{ $ornament->image_url }}"
                              data-zoom-name="{{ $ornament->name }}"
-                             @mouseenter="openZoom($el.dataset.zoomSrc, $el.dataset.zoomName)"
-                             @mouseleave="closeZoom()"
                              @click.stop="openZoom($el.dataset.zoomSrc, $el.dataset.zoomName)">
                             <img src="{{ $ornament->image_url }}"
                                  alt="{{ $ornament->name }}"
@@ -206,14 +195,12 @@
                          x-transition:leave="transition ease-in duration-150"
                          x-transition:leave-start="opacity-100"
                          x-transition:leave-end="opacity-0"
-                         @click="zoom = null; clearTimeout(zoomTimer)"
-                         @keydown.escape.window="zoom = null; clearTimeout(zoomTimer)"
+                         @click="zoom = null"
+                         @keydown.escape.window="zoom = null"
                          class="fixed inset-0 z-[200] flex items-center justify-center bg-black/65 backdrop-blur-sm"
                          style="display:none">
                         <div class="relative"
                              @click.stop
-                             @mouseenter="keepZoom()"
-                             @mouseleave="closeZoom()"
                              x-transition:enter="transition ease-out duration-200"
                              x-transition:enter-start="opacity-0 scale-90"
                              x-transition:enter-end="opacity-100 scale-100"
@@ -224,7 +211,7 @@
                                  :alt="zoom?.name"
                                  class="max-w-[82vw] max-h-[72vh] w-auto h-auto rounded-2xl shadow-2xl object-contain">
                             <p class="mt-2 text-center text-white text-sm font-semibold drop-shadow" x-text="zoom?.name"></p>
-                            <button @click="zoom = null; clearTimeout(zoomTimer)"
+                            <button @click="zoom = null"
                                     aria-label="Close"
                                     class="absolute -top-3 -right-3 w-7 h-7 bg-white rounded-full shadow-lg flex items-center justify-center text-gray-500 hover:text-gray-900 transition-colors">
                                 <svg class="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2.5">
