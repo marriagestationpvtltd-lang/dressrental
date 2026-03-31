@@ -133,15 +133,15 @@
             <div class="flex flex-col gap-3 lg:col-span-3">
             @php
                 $imageUrls    = $dress->images->pluck('url')->values()->toArray();
-                $primaryImage = $dress->primaryImage();
-                $primaryUrl   = optional($primaryImage)->url ?? '';
+                $primaryImage = $dress->images->firstWhere('is_primary', true) ?? $dress->images->first();
+                $primaryUrl   = $primaryImage ? $primaryImage->url : ($imageUrls[0] ?? '');
                 $foundIdx     = array_search($primaryUrl, $imageUrls);
                 $initialIdx   = ($foundIdx !== false) ? (int) $foundIdx : 0;
             @endphp
             <div x-data="{
                     images: @json($imageUrls),
                     activeIdx: {{ $initialIdx }},
-                    get activeImg() { return this.images[this.activeIdx] ?? ''; },
+                    get activeImg() { return this.images[this.activeIdx] || this.images[0] || ''; },
                     zoom: false,
                     openZoom() { if (this.images.length) this.zoom = true; },
                     prevImg() { this.activeIdx = (this.activeIdx - 1 + this.images.length) % this.images.length; },
@@ -149,14 +149,14 @@
                  }">
                 <!-- Main image -->
                 <div class="rounded-2xl overflow-hidden bg-gradient-to-br from-violet-50 to-pink-50 mb-3 border border-violet-100 shadow-card relative group cursor-zoom-in"
-                     style="max-height: 70vh;"
+                     style="min-height: 300px; max-height: 70vh;"
                      @click="openZoom()">
                     @if($primaryImage)
                         <img :src="activeImg || '{{ $primaryUrl }}'"
                              src="{{ $primaryUrl }}"
                              alt="{{ $dress->name }}"
-                             class="w-full object-cover object-center"
-                             style="max-height: 70vh;"
+                             class="w-full object-cover object-center block"
+                             style="min-height: 300px; max-height: 70vh;"
                              id="main-img">
                     @else
                         <div class="w-full flex items-center justify-center bg-gradient-to-br from-violet-100 to-pink-100" style="height: 50vh;">
