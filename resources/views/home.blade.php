@@ -419,7 +419,13 @@ function featuredSlider() {
             this.dragging = true;
             this.hasDragged = false;
             this.startX = e.clientX;
-            this.$el.setPointerCapture(e.pointerId);
+            // Attach a document-level pointerup fallback so a drag that ends
+            // outside the slider viewport still resets drag state.
+            // (setPointerCapture was removed because it redirects the subsequent
+            // click event to the wrapper div, preventing <a> card navigation.)
+            if (this._docUp) document.removeEventListener('pointerup', this._docUp);
+            this._docUp = (ev) => this.endDrag(ev);
+            document.addEventListener('pointerup', this._docUp);
         },
 
         onDrag(e) {
@@ -430,6 +436,7 @@ function featuredSlider() {
         },
 
         endDrag(e) {
+            if (this._docUp) { document.removeEventListener('pointerup', this._docUp); this._docUp = null; }
             if (!this.dragging) return;
             this.dragging = false;
             const diff = e.clientX - this.startX;
@@ -444,6 +451,7 @@ function featuredSlider() {
         },
 
         cancelDrag() {
+            if (this._docUp) { document.removeEventListener('pointerup', this._docUp); this._docUp = null; }
             if (!this.dragging) return;
             this.dragging = false;
             this.hasDragged = false;
