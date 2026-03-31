@@ -9,7 +9,7 @@
 /* Accessories horizontal slider */
 .accessories-slider {
     display: flex;
-    gap: 0.5rem;
+    gap: 0.75rem;
     overflow-x: auto;
     scroll-snap-type: x mandatory;
     -webkit-overflow-scrolling: touch;
@@ -20,17 +20,43 @@
 .accessories-slider::-webkit-scrollbar { display: none; }
 .accessories-slider-item {
     flex-shrink: 0;
-    width: 6.5rem;
+    width: 9rem;
     scroll-snap-align: start;
 }
 @media (min-width: 640px) {
-    .accessories-slider-item { width: 7.5rem; }
+    .accessories-slider-item { width: 10rem; }
 }
 
 /* Accessory card selected state */
 .acc-card-selected {
     border-color: #a21caf !important;
     box-shadow: 0 0 0 2px #e879f9;
+}
+
+/* Size/Color pill buttons */
+.spec-pill {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    padding: 0.35rem 0.85rem;
+    border-radius: 9999px;
+    border: 2px solid #ddd6fe;
+    font-size: 0.8125rem;
+    font-weight: 700;
+    color: #4c1d95;
+    background: #fff;
+    transition: background 0.15s, border-color 0.15s, color 0.15s;
+    cursor: default;
+}
+
+/* Sticky booking bar */
+#sticky-booking-bar {
+    transition: transform 0.25s ease, opacity 0.25s ease;
+}
+#sticky-booking-bar.hidden-bar {
+    transform: translateY(-100%);
+    opacity: 0;
+    pointer-events: none;
 }
 </style>
 @endpush
@@ -57,25 +83,100 @@
     </div>
 </div>
 
-<div class="bg-gray-50 min-h-screen">
-    <div class="max-w-7xl mx-auto px-4 py-8">
-        <div class="grid grid-cols-1 lg:grid-cols-2 gap-8 lg:gap-12">
+<!-- ── Sticky Booking Bar ── -->
+<div id="sticky-booking-bar" class="hidden-bar fixed top-0 left-0 right-0 z-40 bg-white/95 backdrop-blur-md border-b border-violet-100 shadow-md">
+    <div class="max-w-7xl mx-auto px-4 py-2 flex items-center justify-between gap-4">
+        <div class="flex items-center gap-3 min-w-0">
+            <span class="font-extrabold text-primary-600 text-lg leading-none">₨{{ number_format($dress->price_per_day) }}</span>
+            <span class="text-gray-400 text-xs">/ day</span>
+            <span class="hidden sm:inline-flex items-center gap-1 text-xs font-semibold {{ $dress->status === 'available' ? 'text-emerald-600' : 'text-rose-600' }}">
+                <span class="w-1.5 h-1.5 rounded-full {{ $dress->status === 'available' ? 'bg-emerald-500' : 'bg-rose-500' }}"></span>
+                {{ ucfirst($dress->status) }}
+            </span>
+            <span class="hidden md:block text-sm font-bold text-gray-900 truncate">{{ $dress->name }}</span>
+        </div>
+        @if($dress->status === 'available')
+        <a href="#booking-form"
+           @click.prevent="document.getElementById('booking-form').scrollIntoView({behavior:'smooth'})"
+           class="flex-shrink-0 gradient-bg text-white font-extrabold px-5 py-2 rounded-xl text-sm hover:opacity-90 transition-opacity shadow touch-manipulation flex items-center gap-1.5">
+            <svg class="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z"/></svg>
+            Book Now
+        </a>
+        @endif
+    </div>
+</div>
 
-            <!-- ── Images Gallery ── -->
-            <div class="flex flex-col gap-4">
-            <div x-data="{ activeImg: '{{ $dress->primaryImage() ? $dress->primaryImage()->url : '' }}' }">
-                <div class="aspect-square rounded-3xl overflow-hidden bg-gradient-to-br from-violet-50 to-pink-50 mb-4 border border-violet-100 shadow-card relative group">
+<div class="bg-gray-50 min-h-screen">
+    <div class="max-w-7xl mx-auto px-4 py-5">
+        <div class="grid grid-cols-1 lg:grid-cols-5 gap-6 lg:gap-10">
+
+            <!-- ── Images Gallery (60%) ── -->
+            <div class="flex flex-col gap-3 lg:col-span-3">
+            <div x-data="{
+                    activeImg: '{{ $dress->primaryImage() ? $dress->primaryImage()->url : '' }}',
+                    zoom: false,
+                    openZoomMain() { if (this.activeImg) this.zoom = true; }
+                 }">
+                <!-- Main image -->
+                <div class="rounded-2xl overflow-hidden bg-gradient-to-br from-violet-50 to-pink-50 mb-3 border border-violet-100 shadow-card relative group cursor-zoom-in"
+                     style="max-height: 70vh;"
+                     @click="openZoomMain()">
                     @if($dress->primaryImage())
-                        <img :src="activeImg" alt="{{ $dress->name }}" class="w-full h-full object-cover" id="main-img">
+                        <img :src="activeImg" alt="{{ $dress->name }}"
+                             class="w-full object-cover object-center"
+                             style="max-height: 70vh;"
+                             id="main-img">
                     @else
-                        <div class="w-full h-full flex items-center justify-center bg-gradient-to-br from-violet-100 to-pink-100">
+                        <div class="w-full flex items-center justify-center bg-gradient-to-br from-violet-100 to-pink-100" style="height: 50vh;">
                             <svg class="w-24 h-24 text-violet-300" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="1" d="M12 3l9 7-9 7-9-7 9-7z"/></svg>
                         </div>
                     @endif
                     @if($dress->is_featured)
-                        <div class="absolute top-4 left-4 bg-amber-400 text-amber-900 text-xs font-bold px-3 py-1.5 rounded-full shadow-sm flex items-center gap-1">⭐ Featured</div>
+                        <div class="absolute top-3 left-3 bg-amber-400 text-amber-900 text-xs font-bold px-3 py-1.5 rounded-full shadow-sm flex items-center gap-1">⭐ Featured</div>
+                    @endif
+                    <!-- Zoom hint -->
+                    @if($dress->primaryImage())
+                    <div class="absolute bottom-3 right-3 bg-black/40 text-white text-[10px] font-semibold px-2 py-1 rounded-lg flex items-center gap-1 opacity-0 group-hover:opacity-100 transition-opacity pointer-events-none">
+                        <svg class="w-3 h-3" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0zM10 7v3m0 0v3m0-3h3m-3 0H7"/></svg>
+                        Zoom
+                    </div>
                     @endif
                 </div>
+
+                <!-- Main image zoom popup -->
+                <template x-teleport="body">
+                    <div x-show="zoom"
+                         x-cloak
+                         role="dialog"
+                         aria-modal="true"
+                         aria-label="{{ $dress->name }}"
+                         x-transition:enter="transition ease-out duration-200"
+                         x-transition:enter-start="opacity-0"
+                         x-transition:enter-end="opacity-100"
+                         x-transition:leave="transition ease-in duration-150"
+                         x-transition:leave-start="opacity-100"
+                         x-transition:leave-end="opacity-0"
+                         @click="zoom = false"
+                         @keydown.escape.window="zoom = false"
+                         class="fixed inset-0 z-[200] flex items-center justify-center bg-black/70 backdrop-blur-sm"
+                         style="display:none">
+                        <div class="relative" @click.stop
+                             x-transition:enter="transition ease-out duration-200"
+                             x-transition:enter-start="opacity-0 scale-90"
+                             x-transition:enter-end="opacity-100 scale-100">
+                            <img :src="activeImg" alt="{{ $dress->name }}"
+                                 class="max-w-[90vw] max-h-[85vh] w-auto h-auto rounded-2xl shadow-2xl object-contain">
+                            <button @click="zoom = false" aria-label="Close image zoom"
+                                    x-ref="zoomClose"
+                                    class="absolute -top-3 -right-3 w-7 h-7 bg-white rounded-full shadow-lg flex items-center justify-center text-gray-500 hover:text-gray-900 transition-colors">
+                                <svg class="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2.5">
+                                    <path stroke-linecap="round" stroke-linejoin="round" d="M6 18L18 6M6 6l12 12"/>
+                                </svg>
+                            </button>
+                        </div>
+                    </div>
+                </template>
+
                 @if($dress->images->count() > 1)
                 <div class="grid grid-cols-5 gap-2">
                     @foreach($dress->images as $img)
@@ -96,8 +197,6 @@
                      peek() {
                          const el = this.$refs.slider;
                          if (!el || el.scrollWidth <= el.clientWidth) return;
-                         // wait 600 ms for page paint, then scroll ~1 item (6.5 rem ≈ 96px)
-                         // and return after 700 ms to hint that the row is slideable
                          setTimeout(() => {
                              el.scrollTo({ left: 96, behavior: 'smooth' });
                              setTimeout(() => el.scrollTo({ left: 0, behavior: 'smooth' }), 700);
@@ -123,7 +222,7 @@
                         <div>
                             <h3 class="text-sm font-bold text-gray-800">Recommended Accessories</h3>
                             <p class="text-xs text-gray-400">
-                                Tap to select &amp; book together
+                                Select to add &amp; book together
                                 <span x-show="$store.accessories.selected.length > 0"
                                       class="ml-1 font-bold text-fuchsia-600"
                                       x-text="'(' + $store.accessories.selected.length + ' selected)'"></span>
@@ -140,47 +239,42 @@
                 </div>
                 <div class="accessories-slider" x-ref="slider">
                     @foreach($ornamentRecommendations as $ornament)
-                    <div class="accessories-slider-item group bg-gray-50 border border-violet-100 rounded-xl overflow-hidden transition-all"
-                         :class="isSelected({{ $ornament->id }}) ? 'acc-card-selected' : 'hover:border-fuchsia-300 hover:shadow-sm'"
-                         role="group"
-                         aria-label="{{ $ornament->name }} — ₨{{ number_format($ornament->price_per_day) }} per day">
-                        <div class="aspect-square bg-gradient-to-br from-fuchsia-50 to-pink-50 overflow-hidden relative cursor-zoom-in"
+                    <div class="accessories-slider-item group bg-gray-50 border-2 border-violet-100 rounded-xl overflow-hidden transition-all cursor-pointer"
+                         :class="isSelected({{ $ornament->id }}) ? 'acc-card-selected bg-fuchsia-50' : 'hover:border-fuchsia-300 hover:shadow-sm'"
+                         role="button"
+                         tabindex="0"
+                         :aria-pressed="isSelected({{ $ornament->id }})"
+                         aria-label="{{ $ornament->name }} — ₨{{ number_format($ornament->price_per_day) }} per day"
+                         @click="toggle({{ $ornament->id }})"
+                         @keydown.enter.prevent="toggle({{ $ornament->id }})"
+                         @keydown.space.prevent="toggle({{ $ornament->id }})">
+                        <div class="relative overflow-hidden bg-gradient-to-br from-fuchsia-50 to-pink-50"
+                             style="aspect-ratio:4/3;"
                              data-zoom-src="{{ $ornament->image_url }}"
                              data-zoom-name="{{ $ornament->name }}"
                              @click.stop="openZoom($el.dataset.zoomSrc, $el.dataset.zoomName)">
                             <img src="{{ $ornament->image_url }}"
                                  alt="{{ $ornament->name }}"
                                  class="w-full h-full object-cover transition-transform duration-300 group-hover:scale-105">
-                            <span class="absolute top-1 left-1 bg-white/90 text-fuchsia-700 text-[10px] font-semibold px-1.5 py-0.5 rounded-full border border-fuchsia-100 leading-none"
-                                  aria-label="{{ \App\Models\Ornament::categoryLabel($ornament->category) }}">
+                            <span class="absolute top-1 left-1 bg-white/90 text-fuchsia-700 text-[10px] font-semibold px-1.5 py-0.5 rounded-full border border-fuchsia-100 leading-none">
                                 {{ \App\Models\Ornament::categoryLabel($ornament->category) }}
                             </span>
-                            <!-- Selected checkmark overlay -->
-                            <div x-show="isSelected({{ $ornament->id }})"
-                                 class="absolute inset-0 bg-fuchsia-600/20 flex items-center justify-center pointer-events-none">
-                                <div class="w-7 h-7 bg-fuchsia-600 rounded-full flex items-center justify-center shadow-lg">
-                                    <svg class="w-4 h-4 text-white" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="3">
+                            <!-- Checkbox overlay -->
+                            <div class="absolute top-1 right-1">
+                                <div :class="isSelected({{ $ornament->id }})
+                                         ? 'bg-fuchsia-600 border-fuchsia-600'
+                                         : 'bg-white/80 border-gray-300'"
+                                     class="w-5 h-5 rounded border-2 flex items-center justify-center shadow transition-colors">
+                                    <svg x-show="isSelected({{ $ornament->id }})" class="w-3 h-3 text-white" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="3.5">
                                         <path stroke-linecap="round" stroke-linejoin="round" d="M5 13l4 4L19 7"/>
                                     </svg>
                                 </div>
                             </div>
                         </div>
-                        <div class="p-1.5">
+                        <div class="p-2">
                             <p class="text-xs font-semibold text-gray-800 truncate leading-tight" title="{{ $ornament->name }}">{{ $ornament->name }}</p>
-                            <p class="text-xs text-primary-600 font-bold mt-0.5">₨{{ number_format($ornament->price_per_day) }}<span class="text-gray-400 font-normal">/d</span></p>
+                            <p class="text-sm text-primary-600 font-extrabold mt-0.5">₨{{ number_format($ornament->price_per_day) }}<span class="text-gray-400 font-normal text-xs"> / day</span></p>
                         </div>
-                        <!-- Select / Deselect toggle button -->
-                        <button type="button"
-                                @click="toggle({{ $ornament->id }})"
-                                :class="isSelected({{ $ornament->id }})
-                                    ? 'bg-fuchsia-600 text-white border-fuchsia-600'
-                                    : 'bg-white text-fuchsia-600 border-fuchsia-200 hover:bg-fuchsia-50'"
-                                class="w-full text-[10px] font-bold py-1 border-t transition-colors flex items-center justify-center gap-1 touch-manipulation"
-                                :aria-pressed="isSelected({{ $ornament->id }})"
-                                aria-label="Toggle {{ $ornament->name }}">
-                            <span x-show="!isSelected({{ $ornament->id }})">+ Add</span>
-                            <span x-show="isSelected({{ $ornament->id }})">✓ Added</span>
-                        </button>
                     </div>
                     @endforeach
                 </div>
@@ -226,13 +320,13 @@
             </div>{{-- end of left column wrapper --}}
 
         <!-- Dress Details + Booking -->
-        <div>
+        <div class="lg:col-span-2">
                 <!-- Category & Status badges -->
-                <div class="flex items-center gap-3 mb-4">
-                    <span class="bg-primary-100 text-primary-700 border border-primary-200 text-xs font-bold px-3 py-1.5 rounded-full">
+                <div class="flex items-center gap-2 mb-3">
+                    <span class="bg-primary-100 text-primary-700 border border-primary-200 text-xs font-bold px-3 py-1 rounded-full">
                         {{ $dress->category->name ?? '' }}
                     </span>
-                    <span class="text-xs font-bold px-3 py-1.5 rounded-full border
+                    <span class="text-xs font-bold px-3 py-1 rounded-full border
                         {{ $dress->status === 'available'
                             ? 'bg-emerald-100 text-emerald-700 border-emerald-200'
                             : 'bg-rose-100 text-rose-700 border-rose-200' }}">
@@ -242,46 +336,61 @@
                     </span>
                 </div>
 
-                <h1 class="text-2xl md:text-3xl font-extrabold text-gray-900 mb-4 leading-tight">{{ $dress->name }}</h1>
+                <h1 class="text-2xl md:text-3xl font-extrabold text-gray-900 mb-3 leading-tight">{{ $dress->name }}</h1>
 
-                <!-- Price -->
-                <div class="bg-gradient-to-r from-violet-50 to-pink-50 border border-violet-200 rounded-2xl px-5 py-4 mb-6">
-                    <div class="flex items-baseline gap-3">
-                        <span class="text-3xl md:text-4xl font-extrabold text-primary-600">₨{{ number_format($dress->price_per_day) }}</span>
-                        <span class="text-gray-500 font-medium">per day</span>
+                <!-- Price — high impact hierarchy -->
+                <div class="mb-4">
+                    <div class="flex items-end gap-2">
+                        <span class="text-4xl md:text-5xl font-extrabold text-primary-600 leading-none">₨{{ number_format($dress->price_per_day) }}</span>
+                        <span class="text-gray-400 font-medium text-sm mb-1">/ day</span>
                     </div>
                     @if($dress->deposit_amount > 0)
-                        <p class="text-sm text-gray-500 mt-1 flex items-center gap-1">
-                            <svg class="w-3.5 h-3.5 text-amber-500" fill="currentColor" viewBox="0 0 20 20"><path fill-rule="evenodd" d="M18 10a8 8 0 11-16 0 8 8 0 0116 0zm-7-4a1 1 0 11-2 0 1 1 0 012 0zM9 9a1 1 0 000 2v3a1 1 0 001 1h1a1 1 0 100-2v-3a1 1 0 00-1-1H9z" clip-rule="evenodd"/></svg>
-                            Refundable deposit: <strong class="text-gray-700">₨{{ number_format($dress->deposit_amount) }}</strong>
+                        <p class="text-sm text-gray-500 mt-1.5 flex items-center gap-1.5">
+                            <svg class="w-3.5 h-3.5 text-amber-500 flex-shrink-0" fill="currentColor" viewBox="0 0 20 20"><path fill-rule="evenodd" d="M18 10a8 8 0 11-16 0 8 8 0 0116 0zm-7-4a1 1 0 11-2 0 1 1 0 012 0zM9 9a1 1 0 000 2v3a1 1 0 001 1h1a1 1 0 100-2v-3a1 1 0 00-1-1H9z" clip-rule="evenodd"/></svg>
+                            Refundable Deposit: <strong class="text-gray-700 ml-0.5">₨{{ number_format($dress->deposit_amount) }}</strong>
+                        </p>
+                    @endif
+                    @if($dress->status === 'available')
+                        <p class="text-sm font-semibold text-emerald-600 mt-1.5 flex items-center gap-1.5">
+                            <span class="w-2 h-2 bg-emerald-500 rounded-full"></span>
+                            Available Today
                         </p>
                     @endif
                 </div>
 
-                <!-- Specs grid -->
-                <div class="grid grid-cols-2 sm:grid-cols-3 gap-3 mb-6">
-                    <div class="bg-white border border-violet-100 rounded-2xl p-3 text-center shadow-sm">
-                        <div class="text-xs text-gray-400 font-semibold uppercase tracking-wider mb-1">Size</div>
-                        <div class="font-extrabold text-gray-900 text-sm">{{ $dress->size }}</div>
+                <!-- Specs as visual pills -->
+                <div class="flex flex-wrap items-center gap-3 mb-4">
+                    @if($dress->size)
+                    <div class="flex items-center gap-2">
+                        <span class="text-xs font-bold text-gray-400 uppercase tracking-wider">Size:</span>
+                        <span class="spec-pill">{{ $dress->size }}</span>
                     </div>
+                    @endif
                     @if($dress->color)
-                    <div class="bg-white border border-violet-100 rounded-2xl p-3 text-center shadow-sm">
-                        <div class="text-xs text-gray-400 font-semibold uppercase tracking-wider mb-1">Color</div>
-                        <div class="font-extrabold text-gray-900 text-sm">{{ $dress->color }}</div>
+                    <div class="flex items-center gap-2">
+                        <span class="text-xs font-bold text-gray-400 uppercase tracking-wider">Color:</span>
+                        <span class="spec-pill flex items-center gap-1.5">
+                            @php $safeColor = preg_replace('/[^a-zA-Z0-9#]/', '', $dress->color); @endphp
+                            <span class="w-3 h-3 rounded-full border border-gray-300 inline-block"
+                                  role="img"
+                                  aria-label="Color: {{ $dress->color }}"
+                                  style="background:{{ $safeColor }}"></span>
+                            {{ $dress->color }}
+                        </span>
                     </div>
                     @endif
                     @if($dress->brand)
-                    <div class="bg-white border border-violet-100 rounded-2xl p-3 text-center shadow-sm">
-                        <div class="text-xs text-gray-400 font-semibold uppercase tracking-wider mb-1">Brand</div>
-                        <div class="font-extrabold text-gray-900 text-sm">{{ $dress->brand }}</div>
+                    <div class="flex items-center gap-2">
+                        <span class="text-xs font-bold text-gray-400 uppercase tracking-wider">Brand:</span>
+                        <span class="spec-pill">{{ $dress->brand }}</span>
                     </div>
                     @endif
                 </div>
 
                 @if($dress->description)
-                <div class="bg-white border border-violet-100 rounded-2xl p-5 mb-6 shadow-sm">
-                    <h3 class="font-bold text-gray-900 mb-2 flex items-center gap-2">
-                        <span class="w-4 h-4 gradient-bg rounded flex items-center justify-center">
+                <div class="bg-white border border-violet-100 rounded-xl px-4 py-3 mb-4 shadow-sm">
+                    <h3 class="font-bold text-gray-900 mb-1.5 flex items-center gap-2 text-sm">
+                        <span class="w-4 h-4 gradient-bg rounded flex items-center justify-center flex-shrink-0">
                             <svg class="w-2.5 h-2.5 text-white" fill="currentColor" viewBox="0 0 20 20"><path d="M9 2a1 1 0 000 2h2a1 1 0 100-2H9z"/><path fill-rule="evenodd" d="M4 5a2 2 0 012-2 3 3 0 003 3h2a3 3 0 003-3 2 2 0 012 2v11a2 2 0 01-2 2H6a2 2 0 01-2-2V5zm3 4a1 1 0 000 2h.01a1 1 0 100-2H7zm3 0a1 1 0 000 2h3a1 1 0 100-2h-3zm-3 4a1 1 0 100 2h.01a1 1 0 100-2H7zm3 0a1 1 0 100 2h3a1 1 0 100-2h-3z" clip-rule="evenodd"/></svg>
                         </span>
                         Description
@@ -293,17 +402,16 @@
                 <!-- ── Booking Form ── -->
                 @if($dress->status === 'available')
                 {{-- overflow-visible is intentional: the Nepali calendar popup must not be clipped --}}
-                <div class="bg-white rounded-3xl border-2 border-violet-200 shadow-card">
-                    <!-- Booking header -->
-                    <div class="gradient-bg px-5 py-4 rounded-t-3xl">
-                        <h3 class="font-extrabold text-white text-base flex items-center gap-2">
-                            <svg class="w-5 h-5 flex-shrink-0" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z"/></svg>
+                <div id="booking-form" class="bg-white rounded-2xl border-2 border-violet-200 shadow-card">
+                    <!-- Booking header + calendar toggle in one row -->
+                    <div class="gradient-bg px-4 py-3 rounded-t-2xl flex items-center justify-between gap-3">
+                        <h3 class="font-extrabold text-white text-sm flex items-center gap-2">
+                            <svg class="w-4 h-4 flex-shrink-0" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z"/></svg>
                             Book This Dress
                         </h3>
-                        <p class="text-violet-200 text-xs mt-0.5">मिति छान्नुहोस् — उपलब्धता र मूल्य हेर्नुहोस्</p>
                     </div>
 
-                    <div class="p-4 sm:p-6">
+                    <div class="p-4">
                     @auth
                     <form method="POST" action="{{ route('bookings.store') }}"
                           x-data="bookingForm()"
@@ -321,55 +429,55 @@
                             <input type="hidden" name="ornaments[]" :value="ornamentId">
                         </template>
 
-                        <!-- Step 1: Calendar mode toggle -->
-                        <div class="mb-2">
-                            <p class="text-xs font-bold text-gray-400 uppercase tracking-wider mb-2">चरण १ — क्यालेन्डर छान्नुहोस्</p>
-                            <div class="flex gap-2 p-1 bg-gray-100 rounded-xl border border-gray-200">
+                        <!-- Calendar mode toggle — compact pill -->
+                        <div class="flex items-center gap-2 mb-3">
+                            <span class="text-xs font-bold text-gray-400 uppercase tracking-wider flex-shrink-0">Calendar:</span>
+                            <div class="flex gap-1 p-0.5 bg-gray-100 rounded-lg border border-gray-200">
                                 <button type="button"
                                         @click="calendarMode = 'bs'; startDate = ''; endDate = ''; available = null; amounts = null; startBsDate = ''; endBsDate = ''; calendarOpen = false"
-                                        :class="calendarMode === 'bs' ? 'gradient-bg text-white shadow-sm' : 'text-gray-600 hover:text-gray-800 hover:bg-white'"
-                                        class="flex-1 py-2.5 rounded-lg text-sm font-bold transition-all flex items-center justify-center gap-1.5 touch-manipulation">
+                                        :class="calendarMode === 'bs' ? 'gradient-bg text-white shadow-sm' : 'text-gray-600 hover:bg-white'"
+                                        class="px-3 py-1.5 rounded-md text-xs font-bold transition-all touch-manipulation">
                                     📅 नेपाली (BS)
                                 </button>
                                 <button type="button"
                                         @click="calendarMode = 'ad'; startDate = ''; endDate = ''; available = null; amounts = null; startBsDate = ''; endBsDate = ''; calendarOpen = false"
-                                        :class="calendarMode === 'ad' ? 'gradient-bg text-white shadow-sm' : 'text-gray-600 hover:text-gray-800 hover:bg-white'"
-                                        class="flex-1 py-2.5 rounded-lg text-sm font-bold transition-all flex items-center justify-center gap-1.5 touch-manipulation">
+                                        :class="calendarMode === 'ad' ? 'gradient-bg text-white shadow-sm' : 'text-gray-600 hover:bg-white'"
+                                        class="px-3 py-1.5 rounded-md text-xs font-bold transition-all touch-manipulation">
                                     📅 English (AD)
                                 </button>
                             </div>
                         </div>
 
-                        <!-- Step 2: Date selection -->
-                        <div class="mb-5">
-                            <p class="text-xs font-bold text-gray-400 uppercase tracking-wider mb-2">चरण २ — मिति छान्नुहोस्</p>
-
+                        <!-- Date selection -->
+                        <div class="mb-3">
                             <!-- BS Calendar (popup triggered by date inputs) -->
                             <div x-show="calendarMode === 'bs'" class="relative" @click.outside="calendarOpen = false">
                                 <!-- Date display / trigger inputs -->
-                                <div class="grid grid-cols-1 sm:grid-cols-2 gap-3">
+                                <div class="grid grid-cols-2 gap-2">
                                     <div>
-                                        <label class="block text-xs font-semibold text-gray-500 mb-1.5">🟢 सुरु मिति (BS)</label>
+                                        <label class="block text-xs font-semibold text-gray-500 mb-1">🟢 Start (BS)</label>
                                         <div @click="calendarOpen = !calendarOpen"
                                              :class="calendarOpen ? 'border-primary-400 ring-2 ring-primary-200 bg-primary-50' : 'border-violet-200 hover:border-primary-300 bg-violet-50/50'"
-                                             class="w-full rounded-xl px-3 py-3 text-sm cursor-pointer flex items-center gap-2 transition-colors border touch-manipulation min-h-[3rem]">
-                                            <svg class="w-4 h-4 text-gray-400 flex-shrink-0" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                             class="w-full rounded-xl px-3 py-2.5 text-sm cursor-pointer flex items-center gap-2 transition-colors border touch-manipulation">
+                                            <svg class="w-3.5 h-3.5 text-gray-400 flex-shrink-0" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                                                 <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z"/>
                                             </svg>
                                             <span :class="startBsDate ? 'text-gray-800 font-semibold' : 'text-gray-400'"
-                                                  x-text="startBsDate ? formatBsDate(startBsDate) : 'सुरु मिति छान्नुहोस्'"></span>
+                                                  class="text-xs"
+                                                  x-text="startBsDate ? formatBsDate(startBsDate) : 'सुरु मिति'"></span>
                                         </div>
                                     </div>
                                     <div>
-                                        <label class="block text-xs font-semibold text-gray-500 mb-1.5">🔴 अन्त्य मिति (BS)</label>
+                                        <label class="block text-xs font-semibold text-gray-500 mb-1">🔴 End (BS)</label>
                                         <div @click="calendarOpen = !calendarOpen"
                                              :class="calendarOpen ? 'border-primary-400 ring-2 ring-primary-200 bg-primary-50' : 'border-violet-200 hover:border-primary-300 bg-violet-50/50'"
-                                             class="w-full rounded-xl px-3 py-3 text-sm cursor-pointer flex items-center gap-2 transition-colors border touch-manipulation min-h-[3rem]">
-                                            <svg class="w-4 h-4 text-gray-400 flex-shrink-0" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                             class="w-full rounded-xl px-3 py-2.5 text-sm cursor-pointer flex items-center gap-2 transition-colors border touch-manipulation">
+                                            <svg class="w-3.5 h-3.5 text-gray-400 flex-shrink-0" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                                                 <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z"/>
                                             </svg>
                                             <span :class="endBsDate ? 'text-gray-800 font-semibold' : 'text-gray-400'"
-                                                  x-text="endBsDate ? formatBsDate(endBsDate) : 'अन्त्य मिति छान्नुहोस्'"></span>
+                                                  class="text-xs"
+                                                  x-text="endBsDate ? formatBsDate(endBsDate) : 'अन्त्य मिति'"></span>
                                         </div>
                                     </div>
                                 </div>
@@ -391,89 +499,96 @@
                             </div>
 
                             <!-- AD Date pickers -->
-                            <div x-show="calendarMode === 'ad'" class="grid grid-cols-1 sm:grid-cols-2 gap-3">
+                            <div x-show="calendarMode === 'ad'" class="grid grid-cols-2 gap-2">
                                 <div>
-                                    <label class="block text-xs font-semibold text-gray-500 mb-1.5">🟢 Start Date</label>
+                                    <label class="block text-xs font-semibold text-gray-500 mb-1">🟢 Start Date</label>
                                     <input type="date" x-model="startDate" @change="checkAvailability()"
                                            min="{{ date('Y-m-d') }}"
-                                           class="w-full border border-violet-200 bg-violet-50/50 rounded-xl px-3 py-3 text-sm focus:ring-2 focus:ring-primary-500 focus:border-primary-400 outline-none transition-colors min-h-[3rem]">
+                                           class="w-full border border-violet-200 bg-violet-50/50 rounded-xl px-3 py-2.5 text-sm focus:ring-2 focus:ring-primary-500 focus:border-primary-400 outline-none transition-colors">
                                 </div>
                                 <div>
-                                    <label class="block text-xs font-semibold text-gray-500 mb-1.5">🔴 End Date</label>
+                                    <label class="block text-xs font-semibold text-gray-500 mb-1">🔴 End Date</label>
                                     <input type="date" x-model="endDate" @change="checkAvailability()"
                                            :min="startDate || '{{ date('Y-m-d') }}'"
-                                           class="w-full border border-violet-200 bg-violet-50/50 rounded-xl px-3 py-3 text-sm focus:ring-2 focus:ring-primary-500 focus:border-primary-400 outline-none transition-colors min-h-[3rem]">
+                                           class="w-full border border-violet-200 bg-violet-50/50 rounded-xl px-3 py-2.5 text-sm focus:ring-2 focus:ring-primary-500 focus:border-primary-400 outline-none transition-colors">
                                 </div>
                             </div>
                         </div>
 
                         <!-- Checking state -->
-                        <div x-show="checking" class="text-center py-4 text-sm text-gray-500 flex items-center justify-center gap-2 bg-gray-50 rounded-2xl mb-4">
+                        <div x-show="checking" class="text-center py-3 text-sm text-gray-500 flex items-center justify-center gap-2 bg-gray-50 rounded-xl mb-3">
                             <svg class="w-4 h-4 animate-spin text-primary-500" fill="none" viewBox="0 0 24 24"><circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle><path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4z"></path></svg>
                             उपलब्धता जाँच गर्दैछ...
                         </div>
 
-                        <!-- Available — Step 3 -->
+                        <!-- Available — breakdown -->
                         <div x-show="!checking && available === true" x-cloak
-                             class="bg-emerald-50 border-2 border-emerald-200 rounded-2xl p-4 mb-4">
-                            <div class="flex items-center gap-2 text-emerald-700 font-extrabold mb-3 text-sm">
-                                <div class="w-6 h-6 bg-emerald-500 rounded-full flex items-center justify-center flex-shrink-0">
-                                    <svg class="w-4 h-4 text-white" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M5 13l4 4L19 7"/></svg>
+                             class="bg-emerald-50 border-2 border-emerald-200 rounded-xl p-3 mb-3">
+                            <div class="flex items-center gap-2 text-emerald-700 font-extrabold mb-2 text-sm">
+                                <div class="w-5 h-5 bg-emerald-500 rounded-full flex items-center justify-center flex-shrink-0">
+                                    <svg class="w-3 h-3 text-white" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M5 13l4 4L19 7"/></svg>
                                 </div>
                                 उपलब्ध छ! 🎉
                             </div>
-                            <div class="grid grid-cols-2 gap-2" x-show="amounts">
-                                <div class="bg-white rounded-xl p-3 border border-emerald-100 text-center shadow-sm">
-                                    <div class="text-xs text-gray-400 font-semibold mb-1">दिनहरू</div>
-                                    <div class="font-extrabold text-gray-900 text-base leading-tight" x-text="amounts?.total_days"></div>
+                            <div class="grid grid-cols-2 gap-1.5" x-show="amounts">
+                                <div class="bg-white rounded-lg p-2 border border-emerald-100 text-center">
+                                    <div class="text-[10px] text-gray-400 font-semibold mb-0.5">दिनहरू</div>
+                                    <div class="font-extrabold text-gray-900 text-sm" x-text="amounts?.total_days"></div>
                                 </div>
-                                <div class="bg-white rounded-xl p-3 border border-emerald-100 text-center shadow-sm">
-                                    <div class="text-xs text-gray-400 font-semibold mb-1">ड्रेस भाडा</div>
-                                    <div class="font-extrabold text-gray-900 text-base leading-tight">
-                                        <span class="text-sm">₨</span><span x-text="formatAmount(amounts?.dress_rental)"></span>
+                                <div class="bg-white rounded-lg p-2 border border-emerald-100 text-center">
+                                    <div class="text-[10px] text-gray-400 font-semibold mb-0.5">ड्रेस भाडा</div>
+                                    <div class="font-extrabold text-gray-900 text-sm">
+                                        <span class="text-xs">₨</span><span x-text="formatAmount(amounts?.dress_rental)"></span>
                                     </div>
                                 </div>
                                 <!-- Accessories sub-total — only shown when at least one is selected -->
                                 <template x-if="$store.accessories.selected.length > 0">
-                                    <div class="bg-fuchsia-50 rounded-xl p-3 border border-fuchsia-200 text-center shadow-sm">
-                                        <div class="text-xs text-fuchsia-600 font-semibold mb-1">एक्सेसरी भाडा</div>
-                                        <div class="font-extrabold text-fuchsia-700 text-base leading-tight">
-                                            <span class="text-sm">₨</span><span x-text="formatAmount(accessoriesRental())"></span>
+                                    <div class="bg-fuchsia-50 rounded-lg p-2 border border-fuchsia-200 text-center">
+                                        <div class="text-[10px] text-fuchsia-600 font-semibold mb-0.5">एक्सेसरी भाडा</div>
+                                        <div class="font-extrabold text-fuchsia-700 text-sm">
+                                            <span class="text-xs">₨</span><span x-text="formatAmount(accessoriesRental())"></span>
                                         </div>
                                     </div>
                                 </template>
-                                <div class="bg-white rounded-xl p-3 border border-emerald-100 text-center shadow-sm">
-                                    <div class="text-xs text-gray-400 font-semibold mb-1">धरौटी</div>
-                                    <div class="font-extrabold text-gray-900 text-base leading-tight">
-                                        <span class="text-sm">₨</span><span x-text="formatAmount(totalDeposit())"></span>
+                                <div class="bg-white rounded-lg p-2 border border-emerald-100 text-center">
+                                    <div class="text-[10px] text-gray-400 font-semibold mb-0.5">धरौटी</div>
+                                    <div class="font-extrabold text-gray-900 text-sm">
+                                        <span class="text-xs">₨</span><span x-text="formatAmount(totalDeposit())"></span>
                                     </div>
                                 </div>
-                                <div class="bg-white rounded-xl p-3 border border-emerald-100 text-center shadow-sm col-span-2">
-                                    <div class="text-xs text-gray-400 font-semibold mb-1">जम्मा</div>
-                                    <div class="font-extrabold text-gray-900 text-lg leading-tight">
-                                        <span class="text-sm">₨</span><span x-text="formatAmount(grandTotal())"></span>
+                                <div class="bg-white rounded-lg p-2 border border-emerald-100 text-center col-span-2">
+                                    <div class="text-[10px] text-gray-400 font-semibold mb-0.5">जम्मा</div>
+                                    <div class="font-extrabold text-gray-900 text-base">
+                                        <span class="text-xs">₨</span><span x-text="formatAmount(grandTotal())"></span>
                                     </div>
                                 </div>
                             </div>
-                            <div class="mt-3 gradient-bg text-white rounded-xl px-4 py-3 text-center text-sm font-extrabold shadow-sm">
+                            <div class="mt-2 gradient-bg text-white rounded-lg px-3 py-2 text-center text-xs font-extrabold">
                                 अग्रिम (५०%): ₨<span x-text="formatAmount(advanceAmount())"></span>
                             </div>
                         </div>
 
                         <!-- Not available -->
                         <div x-show="!checking && available === false" x-cloak
-                             class="bg-rose-50 border-2 border-rose-200 rounded-2xl p-4 mb-4 flex items-start gap-3">
-                            <div class="w-6 h-6 bg-rose-500 rounded-full flex items-center justify-center shrink-0 mt-0.5">
-                                <svg class="w-4 h-4 text-white" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M6 18L18 6M6 6l12 12"/></svg>
+                             class="bg-rose-50 border-2 border-rose-200 rounded-xl p-3 mb-3 flex items-start gap-2">
+                            <div class="w-5 h-5 bg-rose-500 rounded-full flex items-center justify-center shrink-0 mt-0.5">
+                                <svg class="w-3 h-3 text-white" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M6 18L18 6M6 6l12 12"/></svg>
                             </div>
                             <p class="text-rose-700 font-semibold text-sm">छानिएको मितिमा उपलब्ध छैन। कृपया अर्को मिति रोज्नुहोस्।</p>
                         </div>
 
-                        <!-- Notes -->
-                        <div class="mb-4">
-                            <label for="booking-notes" class="block text-xs font-semibold text-gray-500 mb-1.5">विशेष नोट (वैकल्पिक)</label>
-                            <textarea id="booking-notes" name="notes" rows="2" placeholder="कुनै विशेष अनुरोध वा टिप्पणी..."
-                                      class="w-full border border-violet-200 bg-violet-50/50 rounded-xl px-3 py-2.5 text-sm focus:ring-2 focus:ring-primary-500 focus:border-primary-400 outline-none resize-none transition-colors"></textarea>
+                        <!-- Notes — collapsed by default -->
+                        <div class="mb-3" x-data="{ open: false }">
+                            <button type="button" @click="open = !open"
+                                    :aria-expanded="open"
+                                    class="flex items-center gap-1 text-xs font-semibold text-gray-400 hover:text-primary-600 transition-colors mb-1 touch-manipulation">
+                                <svg :class="open ? 'rotate-90' : ''" class="w-3 h-3 transition-transform" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M9 5l7 7-7 7"/></svg>
+                                <span x-text="open ? 'Hide note' : '+ Add special note (optional)'"></span>
+                            </button>
+                            <div x-show="open" x-collapse>
+                                <textarea name="notes" rows="2" placeholder="कुनै विशेष अनुरोध वा टिप्पणी..."
+                                          class="w-full border border-violet-200 bg-violet-50/50 rounded-xl px-3 py-2.5 text-sm focus:ring-2 focus:ring-primary-500 focus:border-primary-400 outline-none resize-none transition-colors"></textarea>
+                            </div>
                         </div>
 
                         <button type="submit"
@@ -481,15 +596,15 @@
                                 :class="available && startDate && endDate
                                     ? 'gradient-bg hover:opacity-90 cursor-pointer shadow-glow-primary active:scale-[0.98]'
                                     : 'bg-gray-200 text-gray-400 cursor-not-allowed'"
-                                class="w-full text-white font-extrabold py-4 rounded-2xl text-base transition-all shadow-lg flex items-center justify-center gap-2 touch-manipulation">
+                                class="w-full text-white font-extrabold py-4 rounded-xl text-base transition-all shadow-lg flex items-center justify-center gap-2 touch-manipulation">
                             <svg class="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 3h2l.4 2M7 13h10l4-8H5.4M7 13L5.4 5M7 13l-2.293 2.293c-.63.63-.184 1.707.707 1.707H17m0 0a2 2 0 100 4 2 2 0 000-4zm-8 2a2 2 0 11-4 0 2 2 0 014 0z"/></svg>
-                            अहिले बुक गर्नुहोस् &amp; भुक्तानी गर्नुहोस्
+                            Book Now &amp; Pay
                         </button>
                     </form>
                     @else
-                    <div class="text-center py-8">
-                        <div class="w-16 h-16 bg-violet-100 border-2 border-violet-200 rounded-3xl flex items-center justify-center text-3xl mx-auto mb-4">🔐</div>
-                        <p class="text-gray-600 mb-5 font-medium">यो ड्रेस बुक गर्न लगइन गर्नुहोस्</p>
+                    <div class="text-center py-6">
+                        <div class="w-14 h-14 bg-violet-100 border-2 border-violet-200 rounded-3xl flex items-center justify-center text-3xl mx-auto mb-3">🔐</div>
+                        <p class="text-gray-600 mb-4 font-medium">यो ड्रेस बुक गर्न लगइन गर्नुहोस्</p>
                         <a href="{{ route('login') }}" class="inline-flex items-center justify-center gap-2 gradient-bg text-white font-extrabold px-8 py-3.5 rounded-2xl hover:opacity-90 transition-opacity shadow-lg touch-manipulation">
                             <svg class="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M11 16l-4-4m0 0l4-4m-4 4h14m-5 4v1a3 3 0 01-3 3H6a3 3 0 01-3-3V7a3 3 0 013-3h7a3 3 0 013 3v1"/></svg>
                             लगइन गर्नुहोस्
@@ -499,7 +614,7 @@
                     </div>
                 </div>
                 @else
-                <div class="bg-rose-50 border-2 border-rose-200 rounded-2xl p-6 text-center">
+                <div class="bg-rose-50 border-2 border-rose-200 rounded-2xl p-5 text-center">
                     <div class="w-12 h-12 bg-rose-100 border border-rose-200 rounded-2xl flex items-center justify-center text-2xl mx-auto mb-3">❌</div>
                     <p class="text-rose-700 font-bold">This dress is currently unavailable</p>
                     <p class="text-rose-500 text-sm mt-1">Check back later or browse other dresses</p>
@@ -646,6 +761,28 @@ function bookingForm() {
         }
     }
 }
+
+// Sticky booking bar — show after user scrolls past the price section
+(function() {
+    const bar = document.getElementById('sticky-booking-bar');
+    if (!bar) return;
+    let ticking = false;
+    function onScroll() {
+        if (!ticking) {
+            requestAnimationFrame(() => {
+                const threshold = 200;
+                if (window.scrollY > threshold) {
+                    bar.classList.remove('hidden-bar');
+                } else {
+                    bar.classList.add('hidden-bar');
+                }
+                ticking = false;
+            });
+            ticking = true;
+        }
+    }
+    window.addEventListener('scroll', onScroll, { passive: true });
+})();
 </script>
 @endpush
 @endsection
