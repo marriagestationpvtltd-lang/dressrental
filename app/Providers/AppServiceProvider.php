@@ -2,6 +2,8 @@
 
 namespace App\Providers;
 
+use App\Models\Dress;
+use Illuminate\Support\Facades\View;
 use Illuminate\Support\ServiceProvider;
 
 class AppServiceProvider extends ServiceProvider
@@ -20,6 +22,28 @@ class AppServiceProvider extends ServiceProvider
     public function boot(): void
     {
         $this->ensureStorageLink();
+        $this->shareFooterData();
+    }
+
+    /**
+     * Share footer dress slider data with all views that use the app layout.
+     */
+    private function shareFooterData(): void
+    {
+        View::composer('layouts.app', function ($view) {
+            if (! isset($view->getData()['footerDresses'])) {
+                $footerDresses = Dress::with('images')
+                    ->available()
+                    ->featured()
+                    ->latest()
+                    ->take(20)
+                    ->get()
+                    ->filter(fn ($d) => $d->images->isNotEmpty())
+                    ->values();
+
+                $view->with('footerDresses', $footerDresses);
+            }
+        });
     }
 
     /**

@@ -4,6 +4,7 @@ namespace App\Http\Controllers;
 
 use App\Models\Dress;
 use App\Models\DressCategory;
+use App\Models\HeroBanner;
 
 class HomeController extends Controller
 {
@@ -54,6 +55,8 @@ class HomeController extends Controller
 
         $showcaseCategories = $showcaseCategories->filter(fn ($cat) => $cat->previewDresses->count() > 0)->values();
 
-        return view('home', compact('featuredDresses', 'categories', 'newArrivals', 'showcaseCategories'));
+        $heroBanners = HeroBanner::active()->get();
+
+        return view('home', compact('featuredDresses', 'categories', 'newArrivals', 'showcaseCategories', 'heroBanners'));
     }
 }

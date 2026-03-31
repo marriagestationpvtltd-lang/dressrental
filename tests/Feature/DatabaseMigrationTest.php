@@ -99,6 +99,15 @@ class DatabaseMigrationTest extends TestCase
         ]));
     }
 
+    public function test_hero_banners_table_has_expected_columns(): void
+    {
+        $this->assertTrue(Schema::hasTable('hero_banners'));
+        $this->assertTrue(Schema::hasColumns('hero_banners', [
+            'id', 'title', 'media_type', 'media_value', 'sort_order',
+            'is_active', 'created_at', 'updated_at',
+        ]));
+    }
+
     public function test_pages_table_has_expected_columns(): void
     {
         $this->assertTrue(Schema::hasTable('pages'));
