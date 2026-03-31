@@ -6,6 +6,7 @@ use App\Models\Booking;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Hash;
+use Illuminate\Support\Facades\Schema;
 use Illuminate\Support\Facades\Storage;
 
 class UserDashboardController extends Controller
@@ -80,7 +81,11 @@ class UserDashboardController extends Controller
             abort(403);
         }
 
-        $booking->load(['dress.images', 'payments', 'ornaments']);
+        $booking->load(['dress.images', 'payments']);
+
+        if (Schema::hasTable('booking_ornament') && Schema::hasTable('ornaments')) {
+            $booking->load('ornaments');
+        }
 
         return view('user.booking-show', compact('booking'));
     }

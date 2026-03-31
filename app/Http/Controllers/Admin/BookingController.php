@@ -7,6 +7,7 @@ use App\Mail\BookingStatusUpdated;
 use App\Models\Booking;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Mail;
+use Illuminate\Support\Facades\Schema;
 
 class BookingController extends Controller
 {
@@ -36,7 +37,12 @@ class BookingController extends Controller
 
     public function show(Booking $booking)
     {
-        $booking->load(['user', 'dress.images', 'payments', 'ornaments']);
+        $booking->load(['user', 'dress.images', 'payments']);
+
+        if (Schema::hasTable('booking_ornament') && Schema::hasTable('ornaments')) {
+            $booking->load('ornaments');
+        }
+
         return view('admin.bookings.show', compact('booking'));
     }
 
