@@ -2,8 +2,9 @@
     <a href="{{ route('dresses.show', $dress) }}" class="block">
         <!-- Image -->
         <div class="relative overflow-hidden aspect-[3/4] bg-gradient-to-br from-violet-50 to-pink-50">
-            @if($dress->primaryImage())
-                <img src="{{ $dress->primaryImage()->url }}"
+            @php $primaryImg = $dress->primaryImage(); @endphp
+            @if($primaryImg)
+                <img src="{{ $primaryImg->url }}"
                      alt="{{ $dress->name }}"
                      class="w-full h-full object-cover group-hover:scale-110 transition-transform duration-300 ease-in-out"
                      loading="lazy">

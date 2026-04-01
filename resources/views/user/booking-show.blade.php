@@ -17,8 +17,9 @@
     <div class="bg-white rounded-2xl shadow-sm border border-gray-100 p-5 mb-4">
         <div class="flex gap-4">
             <div class="w-20 h-20 rounded-xl overflow-hidden bg-gray-100 shrink-0">
-                @if($booking->dress && $booking->dress->primaryImage())
-                    <img src="{{ $booking->dress->primaryImage()->url }}" class="w-full h-full object-cover" alt="">
+                @php $primaryImg = $booking->dress ? $booking->dress->primaryImage() : null; @endphp
+                @if($primaryImg)
+                    <img src="{{ $primaryImg->url }}" class="w-full h-full object-cover" alt="">
                 @endif
             </div>
             <div>
