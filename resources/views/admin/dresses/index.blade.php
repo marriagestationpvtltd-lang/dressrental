@@ -48,8 +48,9 @@
                 <td class="px-5 py-3">
                     <div class="flex items-center gap-3">
                         <div class="w-10 h-10 rounded-lg overflow-hidden bg-gray-100 shrink-0">
-                            @if($dress->primaryImage())
-                                <img src="{{ $dress->primaryImage()->url }}" class="w-full h-full object-cover" alt="">
+                            @php $primaryImg = $dress->primaryImage(); @endphp
+                            @if($primaryImg)
+                                <img src="{{ $primaryImg->url }}" class="w-full h-full object-cover" alt="">
                             @else
                                 <div class="w-full h-full flex items-center justify-center text-lg">👗</div>
                             @endif

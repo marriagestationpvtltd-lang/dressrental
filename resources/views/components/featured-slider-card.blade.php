@@ -3,8 +3,9 @@
    @if(!empty($ariaHidden)) aria-hidden="true" tabindex="-1" @endif>
     {{-- Image: 4:5 aspect ratio, ~67% of card height --}}
     <div class="relative overflow-hidden bg-gradient-to-br from-violet-50 to-pink-50" style="aspect-ratio:4/5">
-        @if($dress->primaryImage())
-            <img src="{{ $dress->primaryImage()->url }}"
+        @php $primaryImg = $dress->primaryImage(); @endphp
+        @if($primaryImg)
+            <img src="{{ $primaryImg->url }}"
                  alt="{{ $dress->name }}"
                  class="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500 ease-out"
                  loading="lazy"

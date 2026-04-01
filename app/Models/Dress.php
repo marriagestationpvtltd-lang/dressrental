@@ -59,6 +59,10 @@ class Dress extends Model
 
     public function primaryImage(): ?DressImage
     {
+        if ($this->relationLoaded('images')) {
+            return $this->images->firstWhere('is_primary', true) ?? $this->images->first();
+        }
+
         return $this->images()->where('is_primary', true)->first()
             ?? $this->images()->first();
     }

@@ -16,8 +16,9 @@
         <h3 class="font-semibold text-gray-900 mb-4">Order Summary</h3>
         <div class="flex gap-4 mb-4">
             <div class="w-16 h-16 rounded-xl overflow-hidden bg-gray-100">
-                @if($booking->dress->primaryImage())
-                    <img src="{{ $booking->dress->primaryImage()->url }}" class="w-full h-full object-cover" alt="">
+                @php $primaryImg = $booking->dress->primaryImage(); @endphp
+                @if($primaryImg)
+                    <img src="{{ $primaryImg->url }}" class="w-full h-full object-cover" alt="">
                 @endif
             </div>
             <div>

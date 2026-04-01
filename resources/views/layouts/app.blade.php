@@ -218,7 +218,7 @@
                     <a href="{{ route('dresses.show', $dress->slug) }}"
                        class="shrink-0 w-24 h-28 rounded-xl overflow-hidden border border-white/10 hover:border-white/30 transition-all hover:scale-105 shadow-md"
                        title="{{ $dress->name }}">
-                        <img src="{{ Storage::disk('public')->url($img->image_path) }}"
+                        <img src="{{ $img->url }}"
                              alt="{{ $dress->name }}"
                              class="w-full h-full object-cover"
                              loading="lazy">
