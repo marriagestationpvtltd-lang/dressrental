@@ -128,9 +128,11 @@
                 $foundIdx     = array_search($primaryUrl, $imageUrls);
                 $initialIdx   = ($foundIdx !== false) ? (int) $foundIdx : 0;
             @endphp
+            {{-- Pass image data via a script tag so that JSON double-quotes do not break the HTML attribute --}}
+            <script>window.dressGalleryImages = @json($imageUrls); window.dressGalleryInitialIdx = {{ $initialIdx }};</script>
             <div x-data="{
-                    images: @json($imageUrls),
-                    activeIdx: {{ $initialIdx }},
+                    images: window.dressGalleryImages ?? [],
+                    activeIdx: window.dressGalleryInitialIdx ?? 0,
                     get activeImg() { return this.images[this.activeIdx] || this.images[0] || ''; },
                     zoom: false,
                     openZoom() { if (this.images.length) this.zoom = true; },
