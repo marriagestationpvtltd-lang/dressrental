@@ -67,16 +67,6 @@
 .zoom-img-container {
     animation: zoomImgIn 0.2s ease-out both;
 }
-
-/* Zoom popup: recommended accessories footer slide-up animation */
-@keyframes zoomAccSlideUp {
-    from { opacity: 0; transform: translateY(2rem); }
-    to   { opacity: 1; transform: translateY(0); }
-}
-.zoom-acc-footer {
-    animation: zoomAccSlideUp 0.4s cubic-bezier(0.16, 1, 0.3, 1) 0.2s both;
-}
-.zoom-acc-footer .acc-strip::-webkit-scrollbar { display: none; }
 </style>
 @endpush
 
@@ -116,7 +106,7 @@
         </div>
         @if($dress->status === 'available')
         <a href="#booking-form"
-           @click.prevent="document.getElementById('booking-form').scrollIntoView({behavior:'smooth'})"
+           @click.prevent="document.getElementById('booking-form').scrollIntoView({behavior:'smooth'}); window.dispatchEvent(new CustomEvent('open-booking'))"
            class="flex-shrink-0 gradient-bg text-white font-extrabold px-5 py-2 rounded-xl text-sm hover:opacity-90 transition-opacity shadow touch-manipulation flex items-center gap-1.5">
             <svg class="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z"/></svg>
             Book Now
@@ -149,17 +139,16 @@
                  }">
                 <!-- Main image -->
                 <div class="rounded-2xl overflow-hidden bg-gradient-to-br from-violet-50 to-pink-50 mb-3 border border-violet-100 shadow-card relative group cursor-zoom-in"
-                     style="min-height: 300px; max-height: 70vh;"
+                     style="aspect-ratio:3/4; max-height:70vh;"
                      @click="openZoom()">
                     @if($primaryImage)
                         <img :src="activeImg || '{{ $primaryUrl }}'"
                              src="{{ $primaryUrl }}"
                              alt="{{ $dress->name }}"
-                             class="w-full object-cover object-center block"
-                             style="min-height: 300px; max-height: 70vh;"
+                             class="w-full h-full object-cover object-center block"
                              id="main-img">
                     @else
-                        <div class="w-full flex items-center justify-center bg-gradient-to-br from-violet-100 to-pink-100" style="height: 50vh;">
+                        <div class="w-full h-full flex items-center justify-center bg-gradient-to-br from-violet-100 to-pink-100">
                             <svg class="w-24 h-24 text-violet-300" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="1" d="M12 3l9 7-9 7-9-7 9-7z"/></svg>
                         </div>
                     @endif
@@ -223,7 +212,7 @@
                             <div class="zoom-img-container relative" @click.stop>
                                 <img :src="activeImg"
                                      alt="{{ $dress->name }}"
-                                     class="max-w-[90vw] {{ $ornamentRecommendations->count() ? 'max-h-[55vh]' : 'max-h-[82vh]' }} w-auto h-auto block rounded-2xl shadow-2xl object-contain">
+                                     class="max-w-[90vw] max-h-[82vh] w-auto h-auto block rounded-2xl shadow-2xl object-contain">
 
                                 <!-- Close -->
                                 <button @click.stop="zoom = false"
@@ -259,52 +248,6 @@
                             </div>
                         </div>
 
-                        @if($ornamentRecommendations->count())
-                        <!-- Recommended Accessories footer — slides up with animation when popup opens -->
-                        <div @click.stop
-                             class="zoom-acc-footer flex-shrink-0 bg-black/50 backdrop-blur-md border-t border-white/10 px-4 py-3">
-                            <div class="max-w-3xl mx-auto">
-                                <div class="flex items-center gap-2 mb-2">
-                                    <span class="w-4 h-4 gradient-bg rounded flex items-center justify-center flex-shrink-0">
-                                        <svg class="w-2.5 h-2.5 text-white" fill="currentColor" viewBox="0 0 20 20">
-                                            <path d="M5 3a2 2 0 00-2 2v2a2 2 0 002 2h2a2 2 0 002-2V5a2 2 0 00-2-2H5zM5 11a2 2 0 00-2 2v2a2 2 0 002 2h2a2 2 0 002-2v-2a2 2 0 00-2-2H5zM11 5a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2h-2a2 2 0 01-2-2V5zM14 11a1 1 0 011 1v1h1a1 1 0 110 2h-1v1a1 1 0 11-2 0v-1h-1a1 1 0 110-2h1v-1a1 1 0 011-1z"/>
-                                        </svg>
-                                    </span>
-                                    <span class="text-white text-xs font-bold tracking-wide">Recommended Accessories</span>
-                                    @if($ornamentRecommendations->count() > 3)
-                                    <span class="ml-auto text-white/50 text-[10px] flex items-center gap-0.5 select-none">
-                                        <svg class="w-3 h-3" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2.5"><path stroke-linecap="round" stroke-linejoin="round" d="M15 19l-7-7 7-7"/></svg>
-                                        swipe
-                                        <svg class="w-3 h-3" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2.5"><path stroke-linecap="round" stroke-linejoin="round" d="M9 5l7 7-7 7"/></svg>
-                                    </span>
-                                    @endif
-                                </div>
-                                <!-- Horizontal scrolling accessories strip -->
-                                <div class="acc-strip flex gap-2.5 overflow-x-auto pb-0.5" style="scrollbar-width:none;-webkit-overflow-scrolling:touch;-ms-overflow-style:none;">
-                                    @foreach($ornamentRecommendations as $ornament)
-                                    <div class="flex-shrink-0 w-14 sm:w-16 cursor-pointer group/zacc"
-                                         @click.stop="$store.accessories.toggle({{ $ornament->id }})"
-                                         role="button"
-                                         tabindex="0"
-                                         aria-label="{{ $ornament->name }} — ₨{{ number_format($ornament->price_per_day) }} per day"
-                                         :aria-pressed="$store.accessories.selected.includes({{ $ornament->id }})"
-                                         @keydown.enter.prevent.stop="$store.accessories.toggle({{ $ornament->id }})"
-                                         @keydown.space.prevent.stop="$store.accessories.toggle({{ $ornament->id }})">
-                                        <div class="rounded-lg overflow-hidden border-2 transition-colors"
-                                             :class="$store.accessories.selected.includes({{ $ornament->id }}) ? 'border-fuchsia-400' : 'border-white/20 group-hover/zacc:border-fuchsia-200'"
-                                             style="aspect-ratio:1/1;">
-                                            <img src="{{ $ornament->image_url }}"
-                                                 alt="{{ $ornament->name }}"
-                                                 class="w-full h-full object-cover transition-transform duration-300 group-hover/zacc:scale-105">
-                                        </div>
-                                        <p class="text-white/90 text-[9px] font-semibold text-center mt-1 truncate leading-tight" title="{{ $ornament->name }}">{{ $ornament->name }}</p>
-                                        <p class="text-fuchsia-300 text-[9px] font-bold text-center">₨{{ number_format($ornament->price_per_day) }}</p>
-                                    </div>
-                                    @endforeach
-                                </div>
-                            </div>
-                        </div>
-                        @endif
                     </div>
                 </template>
 
@@ -534,7 +477,7 @@
                 @if($dress->status === 'available')
                 {{-- overflow-visible is intentional: the Nepali calendar popup must not be clipped --}}
                 <div id="booking-form" class="bg-white rounded-2xl border-2 border-violet-200 shadow-card">
-                    <!-- Booking header + calendar toggle in one row -->
+                    <!-- Booking header -->
                     <div class="gradient-bg px-4 py-3 rounded-t-2xl flex items-center justify-between gap-3">
                         <h3 class="font-extrabold text-white text-sm flex items-center gap-2">
                             <svg class="w-4 h-4 flex-shrink-0" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z"/></svg>
@@ -550,7 +493,8 @@
                           @dates-selected="startDate = $event.detail.startAd; endDate = $event.detail.endAd; checkAvailability(); calendarOpen = false"
                           @dates-cleared="startDate = ''; endDate = ''; available = null; amounts = null; startBsDate = ''; endBsDate = ''; calendarOpen = false"
                           @bs-start-selected="startBsDate = $event.detail.bs"
-                          @bs-end-selected="endBsDate = $event.detail.bs">
+                          @bs-end-selected="endBsDate = $event.detail.bs"
+                          @open-booking.window="bookingOpen = true; calendarOpen = true; $nextTick(() => $el.scrollIntoView({behavior:'smooth', block:'nearest'}))">
                         @csrf
                         <input type="hidden" name="dress_id" value="{{ $dress->id }}">
                         <input type="hidden" name="start_date" x-model="startDate">
@@ -560,6 +504,24 @@
                             <input type="hidden" name="ornaments[]" :value="ornamentId">
                         </template>
 
+                        <!-- Initial "Book Now" CTA — shown before booking form is opened -->
+                        <div x-show="!bookingOpen" class="text-center py-2">
+                            <p class="text-gray-400 text-xs mb-3">
+                                <span class="font-extrabold text-primary-600 text-lg">₨{{ number_format($dress->price_per_day) }}</span>/day
+                                @if($dress->deposit_amount > 0)
+                                    &nbsp;+ ₨{{ number_format($dress->deposit_amount) }} deposit
+                                @endif
+                            </p>
+                            <button type="button"
+                                    @click="bookingOpen = true; $nextTick(() => calendarOpen = true)"
+                                    class="w-full gradient-bg text-white font-extrabold py-4 rounded-xl text-base transition-all shadow-glow-primary hover:opacity-90 active:scale-[0.98] flex items-center justify-center gap-2 touch-manipulation">
+                                <svg class="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z"/></svg>
+                                Book Now
+                            </button>
+                        </div>
+
+                        <!-- Booking details — shown after Book Now is clicked -->
+                        <div x-show="bookingOpen">
                         <!-- Calendar mode toggle — compact pill -->
                         <div class="flex items-center gap-2 mb-3">
                             <span class="text-xs font-bold text-gray-400 uppercase tracking-wider flex-shrink-0">Calendar:</span>
@@ -729,8 +691,9 @@
                                     : 'bg-gray-200 text-gray-400 cursor-not-allowed'"
                                 class="w-full text-white font-extrabold py-4 rounded-xl text-base transition-all shadow-lg flex items-center justify-center gap-2 touch-manipulation">
                             <svg class="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 3h2l.4 2M7 13h10l4-8H5.4M7 13L5.4 5M7 13l-2.293 2.293c-.63.63-.184 1.707.707 1.707H17m0 0a2 2 0 100 4 2 2 0 000-4zm-8 2a2 2 0 11-4 0 2 2 0 014 0z"/></svg>
-                            Book Now &amp; Pay
+                            Confirm &amp; Pay
                         </button>
+                        </div>{{-- end x-show="bookingOpen" --}}
                     </form>
                     @else
                     <div class="text-center py-6">
@@ -813,6 +776,7 @@ function bookingForm() {
         endBsDate: '',
         calendarMode: 'bs',
         calendarOpen: false,
+        bookingOpen: false,
         checking: false,
         available: null,
         // amounts holds the base dress-only breakdown returned by the server
