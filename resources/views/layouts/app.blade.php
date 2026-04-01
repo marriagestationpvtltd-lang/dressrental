@@ -65,7 +65,9 @@
         .card-hover:hover { transform: translateY(-5px); box-shadow: 0 20px 40px rgba(0,0,0,.13); }
 
         /* ── Bottom nav safe area ────────────────────── */
-        .bottom-nav-safe { padding-bottom: calc(4rem + env(safe-area-inset-bottom)); }
+        @media (max-width: 767px) {
+            .bottom-nav-safe { padding-bottom: calc(4rem + env(safe-area-inset-bottom)); }
+        }
 
         /* ── Section backgrounds ─────────────────────── */
         .section-light    { background: #fafafa; }
@@ -199,40 +201,6 @@
         <!-- Top accent border -->
         <div class="h-1 gradient-bg"></div>
 
-        {{-- Dress photo slider strip (only when footer dresses are available) --}}
-        @isset($footerDresses)
-        @if($footerDresses->count())
-        @php
-            $fAnimation = setting('footer_slider_animation', 'slide');
-            $fInterval  = (int) setting('footer_slider_interval', 3000);
-        @endphp
-        <div class="border-b border-white/8"
-             x-data="footerSlider({{ $footerDresses->count() }}, {{ $fInterval }})"
-             x-init="init()"
-             @mouseenter="pause()" @mouseleave="resume()">
-            <div class="relative overflow-hidden">
-                <div class="footer-slider-track flex py-3 px-2"
-                     :style="'transform: translateX(' + offset + 'px)'">
-                    @foreach($footerDresses as $dress)
-                    @php $img = $dress->images->firstWhere('is_primary', true) ?? $dress->images->first(); @endphp
-                    <a href="{{ route('dresses.show', $dress->slug) }}"
-                       class="shrink-0 w-24 h-28 rounded-xl overflow-hidden border border-white/10 hover:border-white/30 transition-all hover:scale-105 shadow-md"
-                       title="{{ $dress->name }}">
-                        <img src="{{ $img->url }}"
-                             alt="{{ $dress->name }}"
-                             class="w-full h-full object-cover"
-                             loading="lazy">
-                    </a>
-                    @endforeach
-                </div>
-
-                {{-- Gradient fade edges --}}
-                <div class="absolute inset-y-0 left-0 w-12 bg-gradient-to-r from-[#1e1b4b] to-transparent pointer-events-none"></div>
-                <div class="absolute inset-y-0 right-0 w-12 bg-gradient-to-l from-[#0f172a] to-transparent pointer-events-none"></div>
-            </div>
-        </div>
-        @endif
-        @endisset
         <div class="max-w-7xl mx-auto px-4 py-14">
             <div class="grid grid-cols-1 md:grid-cols-4 gap-10">
                 <!-- Brand -->
