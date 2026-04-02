@@ -57,7 +57,7 @@
                         </div>
                         <div>
                             <div class="font-medium text-gray-900 text-sm">{{ $dress->name }}</div>
-                            <div class="text-xs text-gray-500">{{ $dress->size }} {{ $dress->is_featured ? '⭐' : '' }}</div>
+                            <div class="text-xs text-gray-500">{{ $dress->availableSizes->pluck('size')->join(', ') ?: $dress->size ?: '—' }} {{ $dress->is_featured ? '⭐' : '' }}</div>
                         </div>
                     </div>
                 </td>

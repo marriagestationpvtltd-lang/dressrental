@@ -20,8 +20,11 @@
         @if($dress->is_featured)
             <div class="absolute top-3 left-3 bg-amber-400 text-amber-900 text-xs font-bold px-2.5 py-1 rounded-full shadow flex items-center gap-1">⭐ Featured</div>
         @endif
-        @if($dress->size)
-            <div class="absolute top-3 right-3 bg-white/90 backdrop-blur-sm text-gray-700 text-xs font-semibold px-2.5 py-1 rounded-full shadow border border-gray-100">{{ $dress->size }}</div>
+        @php $sizesLabel = $dress->relationLoaded('availableSizes') && $dress->availableSizes->isNotEmpty()
+            ? $dress->availableSizes->pluck('size')->join(' / ')
+            : $dress->size; @endphp
+        @if($sizesLabel)
+            <div class="absolute top-3 right-3 bg-white/90 backdrop-blur-sm text-gray-700 text-xs font-semibold px-2.5 py-1 rounded-full shadow border border-gray-100">{{ $sizesLabel }}</div>
         @endif
     </div>
     {{-- Card info: name, price, CTA --}}

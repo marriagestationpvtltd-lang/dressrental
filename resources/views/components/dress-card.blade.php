@@ -24,7 +24,10 @@
                 </div>
             @endif
             <div class="absolute top-2 right-2 bg-white/90 backdrop-blur-sm text-gray-700 text-xs font-bold px-2.5 py-1 rounded-full shadow-sm border border-gray-200">
-                {{ $dress->size }}
+                @php $sizesLabel = $dress->relationLoaded('availableSizes') && $dress->availableSizes->isNotEmpty()
+                    ? $dress->availableSizes->pluck('size')->join(' / ')
+                    : $dress->size; @endphp
+                {{ $sizesLabel }}
             </div>
 
             <!-- Quick view button -->

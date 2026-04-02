@@ -53,10 +53,10 @@
                 <span class="label">Dress</span>
                 <span class="value">{{ $booking->dress->name }}</span>
             </div>
-            @if($booking->dress->size)
+            @if($booking->booked_size ?? $booking->dress->size)
             <div class="info-row">
                 <span class="label">Size</span>
-                <span class="value">{{ $booking->dress->size }}</span>
+                <span class="value">{{ $booking->booked_size ?? $booking->dress->size }}</span>
             </div>
             @endif
         </div>
