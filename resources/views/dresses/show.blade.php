@@ -96,8 +96,8 @@
 <div id="sticky-booking-bar" class="hidden-bar fixed top-0 left-0 right-0 z-40 bg-white/95 backdrop-blur-md border-b border-violet-100 shadow-md">
     <div class="max-w-7xl mx-auto px-4 py-2 flex items-center justify-between gap-4">
         <div class="flex items-center gap-3 min-w-0">
-            <span class="font-extrabold text-primary-600 text-lg leading-none">₨{{ number_format($dress->price_per_day) }}</span>
-            <span class="text-gray-400 text-xs">/ day</span>
+            <span class="font-extrabold text-primary-600 text-lg leading-none">₨{{ number_format($dress->price_per_day * 3) }}</span>
+            <span class="text-gray-400 text-xs">/ ३ दिन</span>
             <span class="hidden sm:inline-flex items-center gap-1 text-xs font-semibold {{ $dress->status === 'available' ? 'text-emerald-600' : 'text-rose-600' }}">
                 <span class="w-1.5 h-1.5 rounded-full {{ $dress->status === 'available' ? 'bg-emerald-500' : 'bg-rose-500' }}"></span>
                 {{ ucfirst($dress->status) }}
@@ -417,9 +417,10 @@
                 <!-- Price — high impact hierarchy -->
                 <div class="mb-4">
                     <div class="flex items-end gap-2">
-                        <span class="text-4xl md:text-5xl font-extrabold text-primary-600 leading-none">₨{{ number_format($dress->price_per_day) }}</span>
-                        <span class="text-gray-400 font-medium text-sm mb-1">/ day</span>
+                        <span class="text-4xl md:text-5xl font-extrabold text-primary-600 leading-none">₨{{ number_format($dress->price_per_day * 3) }}</span>
+                        <span class="text-gray-400 font-medium text-sm mb-1">/ ३ दिन</span>
                     </div>
+                    <p class="text-xs text-gray-400 mt-1">₨{{ number_format($dress->price_per_day) }} प्रतिदिन × ३ दिन</p>
                     @if($dress->deposit_amount > 0)
                         <p class="text-sm text-gray-500 mt-1.5 flex items-center gap-1.5">
                             <svg class="w-3.5 h-3.5 text-amber-500 flex-shrink-0" fill="currentColor" viewBox="0 0 20 20"><path fill-rule="evenodd" d="M18 10a8 8 0 11-16 0 8 8 0 0116 0zm-7-4a1 1 0 11-2 0 1 1 0 012 0zM9 9a1 1 0 000 2v3a1 1 0 001 1h1a1 1 0 100-2v-3a1 1 0 00-1-1H9z" clip-rule="evenodd"/></svg>
@@ -509,9 +510,9 @@
                         <!-- Initial "Book Now" CTA — shown before booking form is opened -->
                         <div x-show="!bookingOpen" class="text-center py-2">
                             <p class="text-gray-400 text-xs mb-3">
-                                <span class="font-extrabold text-primary-600 text-lg">₨{{ number_format($dress->price_per_day) }}</span>/day
+                                <span class="font-extrabold text-primary-600 text-lg">₨{{ number_format($dress->price_per_day * 3) }}</span> / ३ दिन
                                 @if($dress->deposit_amount > 0)
-                                    &nbsp;+ ₨{{ number_format($dress->deposit_amount) }} deposit
+                                    &nbsp;+ ₨{{ number_format($dress->deposit_amount) }} धरौटी
                                 @endif
                             </p>
                             <button type="button"
@@ -550,7 +551,7 @@
                                 <!-- Date display / trigger inputs -->
                                 <div class="grid grid-cols-2 gap-2">
                                     <div>
-                                        <label class="block text-xs font-semibold text-gray-500 mb-1">🟢 Start (BS)</label>
+                                        <label class="block text-xs font-semibold text-gray-500 mb-1">🟢 सुरु मिति (BS)</label>
                                         <div @click="calendarOpen = !calendarOpen"
                                              :class="calendarOpen ? 'border-primary-400 ring-2 ring-primary-200 bg-primary-50' : 'border-violet-200 hover:border-primary-300 bg-violet-50/50'"
                                              class="w-full rounded-xl px-3 py-2.5 text-sm cursor-pointer flex items-center gap-2 transition-colors border touch-manipulation">
@@ -563,7 +564,7 @@
                                         </div>
                                     </div>
                                     <div>
-                                        <label class="block text-xs font-semibold text-gray-500 mb-1">🔴 End (BS)</label>
+                                        <label class="block text-xs font-semibold text-gray-500 mb-1">🔴 फिर्ता मिति (स्वतः)</label>
                                         <div @click="calendarOpen = !calendarOpen"
                                              :class="calendarOpen ? 'border-primary-400 ring-2 ring-primary-200 bg-primary-50' : 'border-violet-200 hover:border-primary-300 bg-violet-50/50'"
                                              class="w-full rounded-xl px-3 py-2.5 text-sm cursor-pointer flex items-center gap-2 transition-colors border touch-manipulation">
@@ -597,15 +598,15 @@
                             <div x-show="calendarMode === 'ad'" class="grid grid-cols-2 gap-2">
                                 <div>
                                     <label class="block text-xs font-semibold text-gray-500 mb-1">🟢 Start Date</label>
-                                    <input type="date" x-model="startDate" @change="checkAvailability()"
+                                    <input type="date" x-model="startDate" @change="onStartDateChange()"
                                            min="{{ date('Y-m-d') }}"
                                            class="w-full border border-violet-200 bg-violet-50/50 rounded-xl px-3 py-2.5 text-sm focus:ring-2 focus:ring-primary-500 focus:border-primary-400 outline-none transition-colors">
                                 </div>
                                 <div>
-                                    <label class="block text-xs font-semibold text-gray-500 mb-1">🔴 End Date</label>
-                                    <input type="date" x-model="endDate" @change="checkAvailability()"
+                                    <label class="block text-xs font-semibold text-gray-500 mb-1">🔴 Return Date (Auto)</label>
+                                    <input type="date" x-model="endDate" readonly
                                            :min="startDate || '{{ date('Y-m-d') }}'"
-                                           class="w-full border border-violet-200 bg-violet-50/50 rounded-xl px-3 py-2.5 text-sm focus:ring-2 focus:ring-primary-500 focus:border-primary-400 outline-none transition-colors">
+                                           class="w-full border border-violet-200 bg-gray-50 rounded-xl px-3 py-2.5 text-sm outline-none cursor-not-allowed text-gray-500">
                                 </div>
                             </div>
                         </div>
@@ -631,7 +632,7 @@
                                     <div class="font-extrabold text-gray-900 text-sm" x-text="amounts?.total_days"></div>
                                 </div>
                                 <div class="bg-white rounded-lg p-2 border border-emerald-100 text-center">
-                                    <div class="text-[10px] text-gray-400 font-semibold mb-0.5">ड्रेस भाडा</div>
+                                    <div class="text-[10px] text-gray-400 font-semibold mb-0.5">ड्रेस भाडा (३ दिन)</div>
                                     <div class="font-extrabold text-gray-900 text-sm">
                                         <span class="text-xs">₨</span><span x-text="formatAmount(amounts?.dress_rental)"></span>
                                     </div>
@@ -789,6 +790,24 @@ function bookingForm() {
             if (!bsStr) return '';
             const digits = ['०','१','२','३','४','५','६','७','८','९'];
             return bsStr.replace(/[0-9]/g, d => digits[d]);
+        },
+
+        // Automatically sets end date to start + 2 days (3-day package) and checks availability
+        onStartDateChange() {
+            if (!this.startDate) {
+                this.endDate = '';
+                this.available = null;
+                this.amounts = null;
+                return;
+            }
+            const parts = this.startDate.split('-').map(Number);
+            const end   = new Date(parts[0], parts[1] - 1, parts[2]);
+            end.setDate(end.getDate() + 2);
+            const y = end.getFullYear();
+            const m = String(end.getMonth() + 1).padStart(2, '0');
+            const d = String(end.getDate()).padStart(2, '0');
+            this.endDate = `${y}-${m}-${d}`;
+            this.checkAvailability();
         },
 
         async checkAvailability() {
