@@ -26,8 +26,7 @@
 
     <!-- Prompt label -->
     <div class="text-center text-xs text-primary-600 font-semibold mb-2 min-h-[1.375rem] bg-primary-50 rounded-lg py-1">
-        <span x-show="!selectingEnd">📅 सुरु मिति छान्नुहोस्</span>
-        <span x-show="selectingEnd" x-cloak>📅 अन्त्य मिति छान्नुहोस्</span>
+        <span>📅 सुरु मिति छान्नुहोस् — फिर्ता मिति स्वतः ३ दिन सेट हुनेछ</span>
     </div>
 
     <!-- Day-of-week headers (Nepali) -->
@@ -257,25 +256,26 @@ function nepaliCalendar() {
                 String(this.currentMonth).padStart(2, '0') + '-' +
                 String(day).padStart(2, '0');
 
-            if (!this.selectingEnd) {
-                this.startBs = bsStr; this.startAd = adStr;
-                this.endBs   = '';    this.endAd   = '';
-                this.selectingEnd = true;
-                this.$dispatch('bs-start-selected', { bs: bsStr, ad: adStr });
-            } else {
-                if (adStr < this.startAd) {
-                    // Clicked a date before start — restart selection from here
-                    this.startBs = bsStr; this.startAd = adStr;
-                    this.endBs   = '';    this.endAd   = '';
-                    this.$dispatch('bs-start-selected', { bs: bsStr, ad: adStr });
-                } else {
-                    // Same day or later — allow single-day or multi-day booking
-                    this.endBs = bsStr; this.endAd = adStr;
-                    this.selectingEnd = false;
-                    this.$dispatch('bs-end-selected', { bs: bsStr, ad: adStr });
-                    this.$dispatch('dates-selected', { startAd: this.startAd, endAd: this.endAd });
-                }
-            }
+            // Set start date
+            this.startBs = bsStr; this.startAd = adStr;
+
+            // Auto-calculate end date as start + 2 days (3 days total)
+            const endAdDate = new Date(ad.getFullYear(), ad.getMonth(), ad.getDate());
+            endAdDate.setDate(endAdDate.getDate() + 2);
+            const endAdStr  = fmtDate(endAdDate);
+            const endBsObj  = adToBs(endAdDate);
+            const endBsStr  = endBsObj
+                ? endBsObj.year + '-' +
+                  String(endBsObj.month).padStart(2, '0') + '-' +
+                  String(endBsObj.day).padStart(2, '0')
+                : '';
+
+            this.endBs = endBsStr; this.endAd = endAdStr;
+            this.selectingEnd = false;
+
+            this.$dispatch('bs-start-selected', { bs: bsStr,    ad: adStr    });
+            this.$dispatch('bs-end-selected',   { bs: endBsStr, ad: endAdStr });
+            this.$dispatch('dates-selected', { startAd: adStr, endAd: endAdStr });
         },
 
         clearSelection() {
