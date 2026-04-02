@@ -24,7 +24,7 @@
             </div>
             <div>
                 <h3 class="font-bold text-gray-900">{{ $booking->dress->name ?? 'N/A' }}</h3>
-                <p class="text-sm text-gray-500">Size: {{ $booking->dress->size ?? '' }}</p>
+                <p class="text-sm text-gray-500">Size: {{ $booking->booked_size ?? $booking->dress->size ?? '' }}</p>
                 <p class="text-sm text-gray-500">Category: {{ $booking->dress->category->name ?? '' }}</p>
             </div>
         </div>

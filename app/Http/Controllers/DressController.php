@@ -10,14 +10,14 @@ class DressController extends Controller
 {
     public function index(Request $request)
     {
-        $query = Dress::with(['images', 'category'])->available();
+        $query = Dress::with(['images', 'category', 'availableSizes'])->available();
 
         if ($request->filled('category')) {
             $query->whereHas('category', fn ($q) => $q->where('slug', $request->category));
         }
 
         if ($request->filled('size')) {
-            $query->where('size', $request->size);
+            $query->whereHas('availableSizes', fn ($q) => $q->where('size', $request->size));
         }
 
         if ($request->filled('min_price')) {
@@ -51,7 +51,7 @@ class DressController extends Controller
 
     public function featured(Request $request)
     {
-        $query = Dress::with(['images', 'category'])->available()->featured();
+        $query = Dress::with(['images', 'category', 'availableSizes'])->available()->featured();
 
         $sort = $request->get('sort', 'latest');
         match ($sort) {
@@ -68,7 +68,7 @@ class DressController extends Controller
 
     public function newArrivals(Request $request)
     {
-        $query = Dress::with(['images', 'category'])->available();
+        $query = Dress::with(['images', 'category', 'availableSizes'])->available();
 
         $sort = $request->get('sort', 'latest');
         match ($sort) {
@@ -90,7 +90,7 @@ class DressController extends Controller
         }
 
         $dress->increment('views');
-        $dress->load(['images', 'category.parent', 'ornaments']);
+        $dress->load(['images', 'category.parent', 'ornaments', 'availableSizes', 'pricings']);
 
         // ── Smart ornament recommendation cascade ─────────────────
         // Priority 1: ornaments directly attached to this specific dress
@@ -115,11 +115,12 @@ class DressController extends Controller
             ->merge($categoryOrnaments->whereNotIn('id', $directOrnaments->pluck('id')))
             ->values();
 
-        $recommendations = Dress::with(['images', 'category'])
+        $dressSizes = $dress->availableSizes->pluck('size')->toArray() ?: ($dress->size ? [$dress->size] : []);
+        $recommendations = Dress::with(['images', 'category', 'availableSizes'])
             ->available()
             ->where('id', '!=', $dress->id)
             ->where(fn ($q) => $q->where('category_id', $dress->category_id)
-                ->orWhere('size', $dress->size)
+                ->orWhereHas('availableSizes', fn ($s) => $s->whereIn('size', $dressSizes))
                 ->orWhereBetween('price_per_day', [
                     $dress->price_per_day * 0.7,
                     $dress->price_per_day * 1.3,
@@ -134,6 +135,14 @@ class DressController extends Controller
                 'end'   => $b->end_date->format('Y-m-d'),
             ]);
 
-        return view('dresses.show', compact('dress', 'recommendations', 'bookedRanges', 'ornamentRecommendations'));
+        $dressSizesList  = $dress->availableSizes->pluck('size')->toArray() ?: ($dress->size ? [$dress->size] : []);
+        $threeDayPricing = $dress->pricings->firstWhere('days', 3);
+        $threeDayPrice   = $threeDayPricing ? (float) $threeDayPricing->price : (float) ($dress->price_per_day * 3);
+        $pricingTiersJson = $dress->pricings->pluck('price', 'days')->toArray();
+
+        return view('dresses.show', compact(
+            'dress', 'recommendations', 'bookedRanges', 'ornamentRecommendations',
+            'dressSizesList', 'threeDayPricing', 'threeDayPrice', 'pricingTiersJson'
+        ));
     }
 }

@@ -52,7 +52,7 @@
                 </div>
                 <div>
                     <div class="font-medium text-gray-900">{{ $booking->dress->name }}</div>
-                    <div class="text-sm text-gray-500">Size: {{ $booking->dress->size }}</div>
+                    <div class="text-sm text-gray-500">Size: {{ $booking->booked_size ?? $booking->dress->size ?? '—' }}</div>
                 </div>
             </div>
         </div>

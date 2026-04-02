@@ -43,13 +43,20 @@
                     'currentCategoryId' => old('category_id', $dress->category_id),
                 ])
 
-                <div>
-                    <label class="block text-sm font-medium text-gray-700 mb-1">Size *</label>
-                    <select name="size" required class="w-full border border-gray-200 rounded-xl px-4 py-3 focus:ring-2 focus:ring-primary-500 outline-none">
-                        @foreach($sizes as $size)
-                            <option value="{{ $size }}" {{ old('size', $dress->size) == $size ? 'selected' : '' }}>{{ $size }}</option>
+                <div class="md:col-span-2">
+                    <label class="block text-sm font-medium text-gray-700 mb-2">Available Sizes * <span class="text-xs text-gray-400">(select all that apply)</span></label>
+                    @php $currentSizes = old('sizes', $dress->availableSizes->pluck('size')->toArray() ?: ($dress->size ? [$dress->size] : [])); @endphp
+                    <div class="flex flex-wrap gap-3">
+                        @foreach($sizes as $sz)
+                        <label class="flex items-center gap-2 cursor-pointer select-none bg-gray-50 border border-gray-200 rounded-xl px-4 py-2 hover:bg-primary-50 hover:border-primary-300 transition-colors has-[:checked]:bg-primary-50 has-[:checked]:border-primary-500">
+                            <input type="checkbox" name="sizes[]" value="{{ $sz }}"
+                                   class="w-4 h-4 rounded border-gray-300 text-primary-600"
+                                   {{ in_array($sz, $currentSizes) ? 'checked' : '' }}>
+                            <span class="text-sm font-medium text-gray-700">{{ $sz }}</span>
+                        </label>
                         @endforeach
-                    </select>
+                    </div>
+                    @error('sizes') <p class="text-red-500 text-xs mt-1">{{ $message }}</p> @enderror
                 </div>
 
                 <div>
@@ -117,6 +124,54 @@
                 </div>
                 @endif
 
+                @php
+                    $existingPricings = old('pricings', $dress->pricings->map(fn($p) => ['days' => $p->days, 'price' => $p->price])->toArray());
+                @endphp
+                <div class="md:col-span-2" x-data="pricingTiers({{ json_encode($existingPricings) }})">
+                    <div class="flex items-center justify-between mb-2">
+                        <label class="block text-sm font-medium text-gray-700">Rental Duration Pricing <span class="text-xs text-gray-400">(optional — overrides price per day for exact day counts)</span></label>
+                        <button type="button" @click="addRow()"
+                                class="inline-flex items-center gap-1 text-xs font-medium text-primary-600 border border-primary-300 rounded-lg px-3 py-1 hover:bg-primary-50 transition-colors">
+                            <svg class="w-3.5 h-3.5" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v16m8-8H4"/></svg>
+                            Add Tier
+                        </button>
+                    </div>
+                    <div x-show="rows.length > 0" class="border border-gray-200 rounded-xl overflow-hidden">
+                        <table class="w-full text-sm">
+                            <thead class="bg-gray-50 text-gray-500 uppercase text-xs">
+                                <tr>
+                                    <th class="px-4 py-2 text-left">Days</th>
+                                    <th class="px-4 py-2 text-left">Price (₨)</th>
+                                    <th class="px-4 py-2"></th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                <template x-for="(row, idx) in rows" :key="idx">
+                                    <tr class="border-t border-gray-100">
+                                        <td class="px-4 py-2">
+                                            <input type="number" :name="`pricings[${idx}][days]`" x-model.number="row.days"
+                                                   min="1" placeholder="e.g. 1"
+                                                   class="w-24 border border-gray-200 rounded-lg px-3 py-1.5 focus:ring-2 focus:ring-primary-500 outline-none">
+                                        </td>
+                                        <td class="px-4 py-2">
+                                            <input type="number" :name="`pricings[${idx}][price]`" x-model.number="row.price"
+                                                   min="0" step="0.01" placeholder="0.00"
+                                                   class="w-32 border border-gray-200 rounded-lg px-3 py-1.5 focus:ring-2 focus:ring-primary-500 outline-none">
+                                        </td>
+                                        <td class="px-4 py-2 text-right">
+                                            <button type="button" @click="removeRow(idx)"
+                                                    class="text-red-400 hover:text-red-600 transition-colors">
+                                                <svg class="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"/></svg>
+                                            </button>
+                                        </td>
+                                    </tr>
+                                </template>
+                            </tbody>
+                        </table>
+                    </div>
+                    <p x-show="rows.length === 0" class="text-xs text-gray-400 mt-1">No tiers set — pricing will use <em>Price per Day × days</em>.</p>
+                </div>
+
                 <div class="md:col-span-2">
                     <label class="block text-sm font-medium text-gray-700 mb-1">Add More Images
                         @if(\App\Models\Setting::get('gemini_api_key'))
@@ -144,4 +199,14 @@
         </form>
     </div>
 </div>
+
+<script>
+function pricingTiers(initial) {
+    return {
+        rows: initial.length ? initial : [],
+        addRow() { this.rows.push({ days: '', price: '' }); },
+        removeRow(idx) { this.rows.splice(idx, 1); },
+    };
+}
+</script>
 @endsection

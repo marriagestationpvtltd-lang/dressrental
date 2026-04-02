@@ -96,7 +96,7 @@
 <div id="sticky-booking-bar" class="hidden-bar fixed top-0 left-0 right-0 z-40 bg-white/95 backdrop-blur-md border-b border-violet-100 shadow-md">
     <div class="max-w-7xl mx-auto px-4 py-2 flex items-center justify-between gap-4">
         <div class="flex items-center gap-3 min-w-0">
-            <span class="font-extrabold text-primary-600 text-lg leading-none">₨{{ number_format($dress->price_per_day * 3) }}</span>
+            <span class="font-extrabold text-primary-600 text-lg leading-none">₨{{ number_format($threeDayPrice) }}</span>
             <span class="text-gray-400 text-xs">/ ३ दिन</span>
             <span class="hidden sm:inline-flex items-center gap-1 text-xs font-semibold {{ $dress->status === 'available' ? 'text-emerald-600' : 'text-rose-600' }}">
                 <span class="w-1.5 h-1.5 rounded-full {{ $dress->status === 'available' ? 'bg-emerald-500' : 'bg-rose-500' }}"></span>
@@ -417,10 +417,14 @@
                 <!-- Price — high impact hierarchy -->
                 <div class="mb-4">
                     <div class="flex items-end gap-2">
-                        <span class="text-4xl md:text-5xl font-extrabold text-primary-600 leading-none">₨{{ number_format($dress->price_per_day * 3) }}</span>
+                        <span class="text-4xl md:text-5xl font-extrabold text-primary-600 leading-none">₨{{ number_format($threeDayPrice) }}</span>
                         <span class="text-gray-400 font-medium text-sm mb-1">/ ३ दिन</span>
                     </div>
-                    <p class="text-xs text-gray-400 mt-1">₨{{ number_format($dress->price_per_day) }} प्रतिदिन × ३ दिन</p>
+                    @if($threeDayPricing)
+                        <p class="text-xs text-gray-400 mt-1">३ दिनको विशेष मूल्य</p>
+                    @else
+                        <p class="text-xs text-gray-400 mt-1">₨{{ number_format($dress->price_per_day) }} प्रतिदिन × ३ दिन</p>
+                    @endif
                     @if($dress->deposit_amount > 0)
                         <p class="text-sm text-gray-500 mt-1.5 flex items-center gap-1.5">
                             <svg class="w-3.5 h-3.5 text-amber-500 flex-shrink-0" fill="currentColor" viewBox="0 0 20 20"><path fill-rule="evenodd" d="M18 10a8 8 0 11-16 0 8 8 0 0116 0zm-7-4a1 1 0 11-2 0 1 1 0 012 0zM9 9a1 1 0 000 2v3a1 1 0 001 1h1a1 1 0 100-2v-3a1 1 0 00-1-1H9z" clip-rule="evenodd"/></svg>
@@ -437,10 +441,12 @@
 
                 <!-- Specs as visual pills -->
                 <div class="flex flex-wrap items-center gap-3 mb-4">
-                    @if($dress->size)
-                    <div class="flex items-center gap-2">
+                    @if(count($dressSizesList) > 0)
+                    <div class="flex items-center gap-2 flex-wrap">
                         <span class="text-xs font-bold text-gray-400 uppercase tracking-wider">Size:</span>
-                        <span class="spec-pill">{{ $dress->size }}</span>
+                        @foreach($dressSizesList as $sz)
+                            <span class="spec-pill">{{ $sz }}</span>
+                        @endforeach
                     </div>
                     @endif
                     @if($dress->color)
@@ -502,6 +508,7 @@
                         <input type="hidden" name="dress_id" value="{{ $dress->id }}">
                         <input type="hidden" name="start_date" x-model="startDate">
                         <input type="hidden" name="end_date" x-model="endDate">
+                        <input type="hidden" name="booked_size" x-model="selectedSize">
                         <!-- Hidden inputs for selected accessories — one per selected ornament -->
                         <template x-for="ornamentId in $store.accessories.selected" :key="ornamentId">
                             <input type="hidden" name="ornaments[]" :value="ornamentId">
@@ -510,7 +517,7 @@
                         <!-- Initial "Book Now" CTA — shown before booking form is opened -->
                         <div x-show="!bookingOpen" class="text-center py-2">
                             <p class="text-gray-400 text-xs mb-3">
-                                <span class="font-extrabold text-primary-600 text-lg">₨{{ number_format($dress->price_per_day * 3) }}</span> / ३ दिन
+                                <span class="font-extrabold text-primary-600 text-lg">₨{{ number_format($threeDayPrice) }}</span> / ३ दिन
                                 @if($dress->deposit_amount > 0)
                                     &nbsp;+ ₨{{ number_format($dress->deposit_amount) }} धरौटी
                                 @endif
@@ -525,6 +532,26 @@
 
                         <!-- Booking details — shown after Book Now is clicked -->
                         <div x-show="bookingOpen">
+                        @if(count($dressSizesList) > 1)
+                        <!-- Size selector -->
+                        <div class="mb-3">
+                            <label class="block text-xs font-bold text-gray-500 uppercase tracking-wider mb-2">साइज छान्नुहोस् *</label>
+                            <div class="flex flex-wrap gap-2">
+                                @foreach($dressSizesList as $sz)
+                                <button type="button"
+                                        @click="selectedSize = '{{ $sz }}'; checkAvailability()"
+                                        :class="selectedSize === '{{ $sz }}' ? 'gradient-bg text-white shadow-sm' : 'bg-gray-50 border-gray-200 text-gray-700 hover:border-primary-400 hover:bg-primary-50'"
+                                        class="px-4 py-2 rounded-xl text-sm font-bold border transition-all touch-manipulation">
+                                    {{ $sz }}
+                                </button>
+                                @endforeach
+                            </div>
+                            <p x-show="!selectedSize" class="text-amber-600 text-xs mt-1">कृपया साइज छान्नुहोस्</p>
+                        </div>
+                        @elseif(count($dressSizesList) === 1)
+                            {{-- Single size — auto-select, no UI needed --}}
+                        @endif
+
                         <!-- Calendar mode toggle — compact pill -->
                         <div class="flex items-center gap-2 mb-3">
                             <span class="text-xs font-bold text-gray-400 uppercase tracking-wider flex-shrink-0">Calendar:</span>
@@ -772,11 +799,14 @@ document.addEventListener('alpine:init', () => {
 });
 
 function bookingForm() {
+    // Auto-select the only size when there is exactly one
+    const availableSizes = @json($dressSizesList);
     return {
         startDate: '',
         endDate: '',
         startBsDate: '',
         endBsDate: '',
+        selectedSize: availableSizes.length === 1 ? availableSizes[0] : '',
         calendarMode: 'bs',
         calendarOpen: false,
         bookingOpen: false,
@@ -821,7 +851,7 @@ function bookingForm() {
                         'Content-Type': 'application/json',
                         'X-CSRF-TOKEN': document.querySelector('meta[name="csrf-token"]').content,
                     },
-                    body: JSON.stringify({ start_date: this.startDate, end_date: this.endDate }),
+                    body: JSON.stringify({ start_date: this.startDate, end_date: this.endDate, booked_size: this.selectedSize || null }),
                 });
                 const data = await resp.json();
                 this.available = data.available;
@@ -879,6 +909,11 @@ function bookingForm() {
 
         submitBooking(form) {
             if (this.available && this.startDate && this.endDate) {
+                const needsSize = @json(count($dressSizesList) > 1);
+                if (needsSize && !this.selectedSize) {
+                    alert('कृपया साइज छान्नुहोस्');
+                    return;
+                }
                 form.submit();
             }
         }

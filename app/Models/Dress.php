@@ -29,6 +29,47 @@ class Dress extends Model
         'views',
     ];
 
+    /** All sizes this dress is available in (via dress_sizes table). */
+    public function availableSizes(): HasMany
+    {
+        return $this->hasMany(DressSize::class)->orderByRaw("FIELD(size,'XS','S','M','L','XL','XXL','Free Size')");
+    }
+
+    /** Per-duration pricing tiers for this dress. */
+    public function pricings(): HasMany
+    {
+        return $this->hasMany(DressPricing::class)->orderBy('days');
+    }
+
+    /**
+     * Returns the list of available sizes, falling back to the legacy single-size field.
+     *
+     * @return string[]
+     */
+    public function getSizesListAttribute(): array
+    {
+        if ($this->relationLoaded('availableSizes') && $this->availableSizes->isNotEmpty()) {
+            return $this->availableSizes->pluck('size')->toArray();
+        }
+        $loaded = $this->availableSizes()->pluck('size')->toArray();
+        if ($loaded) {
+            return $loaded;
+        }
+        return $this->size ? [$this->size] : [];
+    }
+
+    /**
+     * Returns a human-readable size label (e.g. "S / M / L") for display in cards and badges.
+     * Uses the loaded availableSizes relation when available, falls back to the legacy size column.
+     */
+    public function getSizeDisplayAttribute(): string
+    {
+        if ($this->relationLoaded('availableSizes') && $this->availableSizes->isNotEmpty()) {
+            return $this->availableSizes->pluck('size')->join(' / ');
+        }
+        return $this->size ?? '';
+    }
+
     protected function casts(): array
     {
         return [
@@ -83,12 +124,17 @@ class Dress extends Model
             ->whereNotIn('status', ['cancelled', 'completed']);
     }
 
-    public function isAvailableFor(\Carbon\Carbon $start, \Carbon\Carbon $end): bool
+    public function isAvailableFor(\Carbon\Carbon $start, \Carbon\Carbon $end, ?string $size = null): bool
     {
-        return ! $this->activeBookings()
+        $query = $this->activeBookings()
             ->where('start_date', '<=', $end->format('Y-m-d'))
-            ->where('end_date', '>=', $start->format('Y-m-d'))
-            ->exists();
+            ->where('end_date', '>=', $start->format('Y-m-d'));
+
+        if ($size !== null) {
+            $query->where('booked_size', $size);
+        }
+
+        return ! $query->exists();
     }
 
     public function getRouteKeyName(): string

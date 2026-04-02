@@ -15,7 +15,7 @@ class DressController extends Controller
 {
     public function index(Request $request)
     {
-        $query = Dress::with(['category', 'images'])->latest();
+        $query = Dress::with(['category', 'images', 'availableSizes'])->latest();
 
         if ($request->filled('search')) {
             $query->where('name', 'like', '%' . $request->search . '%');
@@ -51,7 +51,8 @@ class DressController extends Controller
         $data = $request->validate([
             'name'           => 'required|string|max:255',
             'category_id'    => 'required|exists:dress_categories,id',
-            'size'           => 'required|in:XS,S,M,L,XL,XXL,Free Size',
+            'sizes'          => 'required|array|min:1',
+            'sizes.*'        => 'in:XS,S,M,L,XL,XXL,Free Size',
             'price_per_day'  => 'required|numeric|min:0',
             'deposit_amount' => 'required|numeric|min:0',
             'description'    => 'nullable|string',
@@ -61,12 +62,21 @@ class DressController extends Controller
             'is_featured'    => 'boolean',
             'images'         => 'nullable|array',
             'images.*'       => 'image|mimes:jpg,jpeg,png,webp|max:3072',
+            'pricings'       => 'nullable|array',
+            'pricings.*.days'  => 'required_with:pricings|integer|min:1',
+            'pricings.*.price' => 'required_with:pricings|numeric|min:0',
         ]);
 
         $data['slug']        = Str::slug($data['name']) . '-' . Str::random(5);
         $data['is_featured'] = $request->boolean('is_featured');
 
         $dress = Dress::create($data);
+
+        // Save available sizes
+        $this->syncSizes($dress, $data['sizes']);
+
+        // Save pricing tiers
+        $this->syncPricings($dress, $data['pricings'] ?? []);
 
         if ($request->hasFile('images')) {
             foreach ($request->file('images') as $i => $image) {
@@ -86,7 +96,7 @@ class DressController extends Controller
 
     public function edit(Dress $dress)
     {
-        $dress->load(['images', 'ornaments']);
+        $dress->load(['images', 'ornaments', 'availableSizes', 'pricings']);
         $categories = DressCategory::topLevel()
             ->where('is_active', true)
             ->with('activeSubcategories')
@@ -102,7 +112,8 @@ class DressController extends Controller
         $data = $request->validate([
             'name'           => 'required|string|max:255',
             'category_id'    => 'required|exists:dress_categories,id',
-            'size'           => 'required|in:XS,S,M,L,XL,XXL,Free Size',
+            'sizes'          => 'required|array|min:1',
+            'sizes.*'        => 'in:XS,S,M,L,XL,XXL,Free Size',
             'price_per_day'  => 'required|numeric|min:0',
             'deposit_amount' => 'required|numeric|min:0',
             'description'    => 'nullable|string',
@@ -114,10 +125,21 @@ class DressController extends Controller
             'images.*'       => 'image|mimes:jpg,jpeg,png,webp|max:3072',
             'ornament_ids'   => 'nullable|array',
             'ornament_ids.*' => 'exists:ornaments,id',
+            'pricings'       => 'nullable|array',
+            'pricings.*.days'  => 'required_with:pricings|integer|min:1',
+            'pricings.*.price' => 'required_with:pricings|numeric|min:0',
         ]);
 
         $data['is_featured'] = $request->boolean('is_featured');
         $dress->update($data);
+
+        // Sync available sizes
+        $dress->availableSizes()->delete();
+        $this->syncSizes($dress, $data['sizes']);
+
+        // Sync pricing tiers
+        $dress->pricings()->delete();
+        $this->syncPricings($dress, $data['pricings'] ?? []);
 
         $dress->ornaments()->sync($request->input('ornament_ids', []));
 
@@ -153,5 +175,32 @@ class DressController extends Controller
         Storage::disk('public')->delete($image->image_path);
         $image->delete();
         return back()->with('success', 'Image removed.');
+    }
+
+    private function syncSizes(Dress $dress, array $sizes): void
+    {
+        $uniqueSizes = array_unique(array_filter($sizes));
+        if (empty($uniqueSizes)) {
+            return;
+        }
+        $rows = array_map(
+            fn ($s) => ['dress_id' => $dress->id, 'size' => $s, 'created_at' => now(), 'updated_at' => now()],
+            $uniqueSizes
+        );
+        \App\Models\DressSize::insert(array_values($rows));
+    }
+
+    private function syncPricings(Dress $dress, array $pricings): void
+    {
+        $rows = [];
+        foreach ($pricings as $p) {
+            $days = (int) $p['days'];
+            if ($days > 0) {
+                $rows[$days] = ['dress_id' => $dress->id, 'days' => $days, 'price' => $p['price'], 'created_at' => now(), 'updated_at' => now()];
+            }
+        }
+        if ($rows) {
+            \App\Models\DressPricing::insert(array_values($rows));
+        }
     }
 }

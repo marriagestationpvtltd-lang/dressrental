@@ -20,8 +20,8 @@
         @if($dress->is_featured)
             <div class="absolute top-3 left-3 bg-amber-400 text-amber-900 text-xs font-bold px-2.5 py-1 rounded-full shadow flex items-center gap-1">⭐ Featured</div>
         @endif
-        @if($dress->size)
-            <div class="absolute top-3 right-3 bg-white/90 backdrop-blur-sm text-gray-700 text-xs font-semibold px-2.5 py-1 rounded-full shadow border border-gray-100">{{ $dress->size }}</div>
+        @if($dress->size_display)
+            <div class="absolute top-3 right-3 bg-white/90 backdrop-blur-sm text-gray-700 text-xs font-semibold px-2.5 py-1 rounded-full shadow border border-gray-100">{{ $dress->size_display }}</div>
         @endif
     </div>
     {{-- Card info: name, price, CTA --}}

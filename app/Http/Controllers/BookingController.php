@@ -20,14 +20,17 @@ class BookingController extends Controller
     public function checkAvailability(Request $request, Dress $dress)
     {
         $request->validate([
-            'start_date' => 'required|date|after_or_equal:today',
-            'end_date'   => 'required|date|after_or_equal:start_date',
+            'start_date'  => 'required|date|after_or_equal:today',
+            'end_date'    => 'required|date|after_or_equal:start_date',
+            'booked_size' => 'nullable|in:XS,S,M,L,XL,XXL,Free Size',
         ]);
 
         $startDate = Carbon::parse($request->start_date);
         $endDate   = Carbon::parse($request->end_date);
+        $size      = $request->input('booked_size');
 
-        $available = $this->bookingService->isAvailable($dress->id, $startDate, $endDate);
+        $dress->load('pricings');
+        $available = $this->bookingService->isAvailable($dress->id, $startDate, $endDate, $size);
         $amounts   = $available
             ? $this->bookingService->calculateRentalAmount($dress, $startDate, $endDate)
             : null;
@@ -44,6 +47,7 @@ class BookingController extends Controller
             'dress_id'    => 'required|exists:dresses,id',
             'start_date'  => 'required|date|after_or_equal:today',
             'end_date'    => 'required|date|after_or_equal:start_date',
+            'booked_size' => 'nullable|in:XS,S,M,L,XL,XXL,Free Size',
             'notes'       => 'nullable|string|max:500',
             'ornaments'   => 'nullable|array',
             'ornaments.*' => 'integer|exists:ornaments,id',
