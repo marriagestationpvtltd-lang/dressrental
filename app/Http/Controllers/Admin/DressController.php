@@ -73,22 +73,10 @@ class DressController extends Controller
         $dress = Dress::create($data);
 
         // Save available sizes
-        $sizeRows = array_map(fn ($s) => ['dress_id' => $dress->id, 'size' => $s, 'created_at' => now(), 'updated_at' => now()], array_unique($data['sizes']));
-        \App\Models\DressSize::insert($sizeRows);
+        $this->syncSizes($dress, $data['sizes']);
 
         // Save pricing tiers
-        if (! empty($data['pricings'])) {
-            $pricingRows = [];
-            foreach ($data['pricings'] as $p) {
-                $days = (int) $p['days'];
-                if ($days > 0) {
-                    $pricingRows[$days] = ['dress_id' => $dress->id, 'days' => $days, 'price' => $p['price'], 'created_at' => now(), 'updated_at' => now()];
-                }
-            }
-            if ($pricingRows) {
-                \App\Models\DressPricing::insert(array_values($pricingRows));
-            }
-        }
+        $this->syncPricings($dress, $data['pricings'] ?? []);
 
         if ($request->hasFile('images')) {
             foreach ($request->file('images') as $i => $image) {
@@ -147,23 +135,11 @@ class DressController extends Controller
 
         // Sync available sizes
         $dress->availableSizes()->delete();
-        $sizeRows = array_map(fn ($s) => ['dress_id' => $dress->id, 'size' => $s, 'created_at' => now(), 'updated_at' => now()], array_unique($data['sizes']));
-        \App\Models\DressSize::insert($sizeRows);
+        $this->syncSizes($dress, $data['sizes']);
 
         // Sync pricing tiers
         $dress->pricings()->delete();
-        if (! empty($data['pricings'])) {
-            $pricingRows = [];
-            foreach ($data['pricings'] as $p) {
-                $days = (int) $p['days'];
-                if ($days > 0) {
-                    $pricingRows[$days] = ['dress_id' => $dress->id, 'days' => $days, 'price' => $p['price'], 'created_at' => now(), 'updated_at' => now()];
-                }
-            }
-            if ($pricingRows) {
-                \App\Models\DressPricing::insert(array_values($pricingRows));
-            }
-        }
+        $this->syncPricings($dress, $data['pricings'] ?? []);
 
         $dress->ornaments()->sync($request->input('ornament_ids', []));
 
@@ -199,5 +175,32 @@ class DressController extends Controller
         Storage::disk('public')->delete($image->image_path);
         $image->delete();
         return back()->with('success', 'Image removed.');
+    }
+
+    private function syncSizes(Dress $dress, array $sizes): void
+    {
+        $uniqueSizes = array_unique(array_filter($sizes));
+        if (empty($uniqueSizes)) {
+            return;
+        }
+        $rows = array_map(
+            fn ($s) => ['dress_id' => $dress->id, 'size' => $s, 'created_at' => now(), 'updated_at' => now()],
+            $uniqueSizes
+        );
+        \App\Models\DressSize::insert(array_values($rows));
+    }
+
+    private function syncPricings(Dress $dress, array $pricings): void
+    {
+        $rows = [];
+        foreach ($pricings as $p) {
+            $days = (int) $p['days'];
+            if ($days > 0) {
+                $rows[$days] = ['dress_id' => $dress->id, 'days' => $days, 'price' => $p['price'], 'created_at' => now(), 'updated_at' => now()];
+            }
+        }
+        if ($rows) {
+            \App\Models\DressPricing::insert(array_values($rows));
+        }
     }
 }

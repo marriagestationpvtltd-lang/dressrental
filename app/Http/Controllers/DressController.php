@@ -135,6 +135,14 @@ class DressController extends Controller
                 'end'   => $b->end_date->format('Y-m-d'),
             ]);
 
-        return view('dresses.show', compact('dress', 'recommendations', 'bookedRanges', 'ornamentRecommendations'));
+        $dressSizesList  = $dress->availableSizes->pluck('size')->toArray() ?: ($dress->size ? [$dress->size] : []);
+        $threeDayPricing = $dress->pricings->firstWhere('days', 3);
+        $threeDayPrice   = $threeDayPricing ? (float) $threeDayPricing->price : (float) ($dress->price_per_day * 3);
+        $pricingTiersJson = $dress->pricings->pluck('price', 'days')->toArray();
+
+        return view('dresses.show', compact(
+            'dress', 'recommendations', 'bookedRanges', 'ornamentRecommendations',
+            'dressSizesList', 'threeDayPricing', 'threeDayPrice', 'pricingTiersJson'
+        ));
     }
 }

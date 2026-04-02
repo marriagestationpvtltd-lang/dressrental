@@ -58,6 +58,18 @@ class Dress extends Model
         return $this->size ? [$this->size] : [];
     }
 
+    /**
+     * Returns a human-readable size label (e.g. "S / M / L") for display in cards and badges.
+     * Uses the loaded availableSizes relation when available, falls back to the legacy size column.
+     */
+    public function getSizeDisplayAttribute(): string
+    {
+        if ($this->relationLoaded('availableSizes') && $this->availableSizes->isNotEmpty()) {
+            return $this->availableSizes->pluck('size')->join(' / ');
+        }
+        return $this->size ?? '';
+    }
+
     protected function casts(): array
     {
         return [
